@@ -299,9 +299,9 @@
             <div class="forecast-grid" id="forecast-container"></div>
         </div>
 
-        <!-- Catchment Map -->
+        <!-- Locations Map -->
         <div class="dashboard-section">
-            <div class="section-title">Catchment Gauge Map</div>
+            <div class="section-title">Locations</div>
             <div id="map"></div>
         </div>
 
@@ -586,7 +586,6 @@
             return { id: st.id, levelVal: null, delta: 0 };
         }
 
-        // TAILORED FCI ENGINE PER RIVER SPECIES PROFILE
         function calculateFCI(station, levelVal, delta) {
             if (levelVal === null) return null;
 
@@ -600,7 +599,6 @@
             let speciesRows = [];
             let tacticalTip = "";
 
-            // --- RIVER TYPE: WENNING (Trout & Grayling) ---
             if (station.riverType === "wenning") {
                 let trout = { label: "Prime (Dry/Nymph)", badgeClass: "fci-prime" };
                 if (isHigh || isRising) {
@@ -614,8 +612,6 @@
                 }
                 speciesRows.push({ name: "🍃 Brown Trout / Grayling", label: trout.label, badgeClass: trout.badgeClass });
             }
-
-            // --- RIVER TYPE: MINT (Spate Salmon & Brown Trout) ---
             else if (station.riverType === "mint") {
                 let salmon = { label: "Low Water (Idle)", badgeClass: "fci-poor" };
                 let trout = { label: "Good Pocket Fly", badgeClass: "fci-good" };
@@ -632,8 +628,6 @@
                 speciesRows.push({ name: "🎣 Salmon (Spate Run)", label: salmon.label, badgeClass: salmon.badgeClass });
                 speciesRows.push({ name: "🍃 Brown Trout", label: trout.label, badgeClass: trout.badgeClass });
             }
-
-            // --- RIVER TYPE: DUDDON (Spate Salmon & Wild Brown Trout) ---
             else if (station.riverType === "duddon") {
                 let salmon = { label: "Low (Waiting Rain)", badgeClass: "fci-mod" };
                 let trout = { label: "Good Wild Fly", badgeClass: "fci-good" };
@@ -650,8 +644,6 @@
                 speciesRows.push({ name: "🎣 Salmon / Sea Trout", label: salmon.label, badgeClass: salmon.badgeClass });
                 speciesRows.push({ name: "🍃 Wild Brown Trout", label: trout.label, badgeClass: trout.badgeClass });
             }
-
-            // --- RIVER TYPE: HODDER (Trout & Salmon/Sea Trout) ---
             else if (station.riverType === "hodder") {
                 let salmon = { label: "Moderate", badgeClass: "fci-mod" };
                 let trout = { label: "Good Fly Water", badgeClass: "fci-good" };
@@ -669,8 +661,6 @@
                 speciesRows.push({ name: "🎣 Salmon / Sea Trout", label: salmon.label, badgeClass: salmon.badgeClass });
                 speciesRows.push({ name: "🍃 Brown Trout", label: trout.label, badgeClass: trout.badgeClass });
             }
-
-            // --- RIVER TYPE: LUNE (Trout & Salmon - NO BARBEL) ---
             else if (station.riverType === "lune") {
                 let salmon = { label: "Moderate", badgeClass: "fci-mod" };
                 let trout = { label: "Good Fly Water", badgeClass: "fci-good" };
@@ -691,8 +681,6 @@
                 speciesRows.push({ name: "🎣 Salmon / Sea Trout", label: salmon.label, badgeClass: salmon.badgeClass });
                 speciesRows.push({ name: "🍃 Brown Trout", label: trout.label, badgeClass: trout.badgeClass });
             }
-
-            // --- RIVER TYPE: RIBBLE (All Species Including Barbel) ---
             else {
                 let barbel = { label: "Moderate", badgeClass: "fci-mod" };
                 let salmon = { label: "Moderate", badgeClass: "fci-mod" };
