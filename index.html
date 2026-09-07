@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <title>River Dashboard 🎣</title>
+    <title>River Level & Weather Dashboard 🎣</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎣</text></svg>">
 
     <!-- Chart.js & Leaflet Map CSS/JS -->
@@ -82,6 +82,32 @@
             margin-bottom: 12px;
             display: flex;
             justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Weather Visual Styles */
+        .weather-banner {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(135deg, rgba(58, 134, 255, 0.15), rgba(16, 185, 129, 0.05));
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(58, 134, 255, 0.2);
+        }
+
+        .weather-hero-icon {
+            font-size: 38px;
+            line-height: 1;
+            filter: drop-shadow(0 0 6px rgba(255,255,255,0.2));
+        }
+
+        .weather-hero-desc {
+            font-size: 16px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 2px;
         }
 
         .weather-metrics {
@@ -110,17 +136,22 @@
         }
 
         .forecast-day {
-            background: rgba(0,0,0,0.15);
-            padding: 6px;
-            border-radius: 6px;
+            background: rgba(0,0,0,0.2);
+            padding: 8px 4px;
+            border-radius: 8px;
             text-align: center;
             font-size: 11px;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: background 0.2s;
         }
 
-        .forecast-date { font-weight: 600; color: var(--accent-blue); margin-bottom: 2px; }
+        .forecast-day:hover { background: rgba(58, 134, 255, 0.1); }
+        .forecast-date { font-weight: 700; color: var(--accent-blue); margin-bottom: 4px; }
+        .forecast-icon { font-size: 20px; margin: 4px 0; }
+        .forecast-rain { font-weight: 600; font-size: 10px; }
 
         #map {
-            height: 250px;
+            height: 270px;
             width: 100%;
             border-radius: 8px;
             z-index: 1;
@@ -197,7 +228,7 @@
 
         .chart-container { position: relative; height: 110px; width: 100%; }
         
-        /* Custom map pin styling */
+        /* Map popup dark mode styling */
         .leaflet-popup-content-wrapper { background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-color); }
         .leaflet-popup-tip { background: var(--bg-card); }
     </style>
@@ -205,7 +236,7 @@
 <body>
 
     <header>
-        <h1>River Dashboard 🎣</h1>
+        <h1>River Level & Weather Dashboard 🎣</h1>
         <div>
             <label for="locationSelect" style="font-size: 12px; color: var(--text-secondary); margin-right: 6px;">Location:</label>
             <select id="locationSelect" class="location-select" onchange="changeWeatherLocation()">
@@ -213,17 +244,27 @@
                 <option value="54.070,-2.278">Upper Ribble (Settle)</option>
                 <option value="53.945,-2.522">Hodder Valley (Dunsop Bridge)</option>
                 <option value="53.758,-2.680">Lower Ribble (Preston)</option>
+                <option value="54.108,-2.610">Lune Valley (Caton / Hornby)</option>
+                <option value="54.051,-2.802">Lower Lune / Estuary (Lancaster)</option>
                 <option value="54.331,-2.735">River Mint (Kendal)</option>
             </select>
         </div>
     </header>
 
     <div class="top-grid">
-        <!-- Expanded Interactive Weather Widget -->
+        <!-- Interactive Weather Widget -->
         <div class="dashboard-section">
             <div class="section-title">
                 <span id="weather-location-label">Ribble Valley Weather</span>
-                <span id="weather-humidity">--% RH</span>
+                <span id="weather-humidity" style="color:var(--text-secondary)">--% RH</span>
+            </div>
+
+            <div class="weather-banner">
+                <div class="weather-hero-icon" id="weather-hero-icon">🌤️</div>
+                <div>
+                    <div class="weather-hero-desc" id="weather-hero-desc">Loading Weather...</div>
+                    <div style="font-size: 12px; color: var(--text-secondary);" id="weather-hero-sub">Fetching live telemetry</div>
+                </div>
             </div>
             
             <div class="weather-metrics">
@@ -236,7 +277,7 @@
                     <div class="metric-val" id="weather-wind">-- mph</div>
                 </div>
                 <div class="metric-box">
-                    <div class="metric-label">Rain</div>
+                    <div class="metric-label">Precip</div>
                     <div class="metric-val" id="weather-precip">-- mm</div>
                 </div>
                 <div class="metric-box">
@@ -246,11 +287,11 @@
             </div>
 
             <div class="forecast-grid" id="forecast-container">
-                <!-- 5 Day Forecast dynamically loaded here -->
+                <!-- 5 Day Forecast -->
             </div>
         </div>
 
-        <!-- Catchment Interactive Map -->
+        <!-- Catchment Map -->
         <div class="dashboard-section">
             <div class="section-title">Catchment Gauge Map</div>
             <div id="map"></div>
@@ -290,6 +331,12 @@
     <h2 class="section-header-text">🏞️ River Hodder</h2>
     <div class="stations-grid" id="hodder-container"></div>
 
+    <h2 class="section-header-text">🌿 River Wenning</h2>
+    <div class="stations-grid" id="wenning-container"></div>
+
+    <h2 class="section-header-text">🏞️ River Lune</h2>
+    <div class="stations-grid" id="lune-container"></div>
+
     <h2 class="section-header-text">⛰️ River Mint</h2>
     <div class="stations-grid" id="mint-container"></div>
 
@@ -300,26 +347,51 @@
         let mapInstance = null;
         let mapMarkers = [];
 
-        // Verified Gauges with Exact Coordinates
+        // Direct Station References with Measure Identifiers & Coordinates
         const ribbleStations = [
-            { name: "Locks Weir (Settle)", measure: "710151-level-stage-i-15_min-m", reach: "Upper", min: 0.20, max: 1.80, lat: 54.068, lon: -2.281 },
-            { name: "Penny Bridge", measure: "710102-level-stage-i-15_min-m", reach: "Upper", min: 0.09, max: 2.48, lat: 54.032, lon: -2.245 },
-            { name: "Arnford", measure: "710103-level-stage-i-15_min-m", reach: "Upper", min: 0.22, max: 2.00, lat: 53.995, lon: -2.238 },
-            { name: "Low Moor", measure: "710301-level-stage-i-15_min-m", reach: "Middle", min: 0.20, max: 3.30, lat: 53.882, lon: -2.418 },
-            { name: "Henthorn (Clitheroe)", measure: "710305-level-stage-i-15_min-m", reach: "Middle", min: 0.33, max: 2.50, lat: 53.856, lon: -2.422 },
-            { name: "New Jumbles Rock", measure: "713056-level-stage-i-15_min-m", reach: "Middle", min: 0.35, max: 2.80, lat: 53.829, lon: -2.485 },
-            { name: "Ribchester School", measure: "713040-level-stage-i-15_min-m", reach: "Middle", min: 0.15, max: 4.41, lat: 53.811, lon: -2.531 },
-            { name: "Samlesbury", measure: "713019-level-stage-i-15_min-m", reach: "Lower Middle", min: 1.14, max: 4.83, lat: 53.766, lon: -2.610 },
-            { name: "Walton-Le-Dale", measure: "713030-level-stage-i-15_min-m", reach: "Lower (Tidal)", min: 0.15, max: 3.50, lat: 53.752, lon: -2.684 }
+            { id: "710151", measure: "710151-level-stage-i-15_min-m", name: "Locks Weir (Settle)", reach: "Upper", min: 0.20, max: 1.80, lat: 54.068, lon: -2.281 },
+            { id: "710102", measure: "710102-level-stage-i-15_min-m", name: "Penny Bridge", reach: "Upper", min: 0.09, max: 2.48, lat: 54.032, lon: -2.245 },
+            { id: "710103", measure: "710103-level-stage-i-15_min-m", name: "Arnford", reach: "Upper", min: 0.22, max: 2.00, lat: 53.995, lon: -2.238 },
+            { id: "710301", measure: "710301-level-stage-i-15_min-m", name: "Low Moor", reach: "Middle", min: 0.20, max: 3.30, lat: 53.882, lon: -2.418 },
+            { id: "710305", measure: "710305-level-stage-i-15_min-m", name: "Henthorn (Clitheroe)", reach: "Middle", min: 0.33, max: 2.50, lat: 53.856, lon: -2.422 },
+            { id: "713056", measure: "713056-level-stage-i-15_min-m", name: "New Jumbles Rock", reach: "Middle", min: 0.35, max: 2.80, lat: 53.829, lon: -2.485 },
+            { id: "713040", measure: "713040-level-stage-i-15_min-m", name: "Ribchester School", reach: "Middle", min: 0.15, max: 4.41, lat: 53.811, lon: -2.531 },
+            { id: "713019", measure: "713019-level-stage-i-15_min-m", name: "Samlesbury", reach: "Lower Middle", min: 1.14, max: 4.83, lat: 53.766, lon: -2.610 },
+            { id: "713030", measure: "713030-level-stage-i-15_min-m", name: "Walton-Le-Dale", reach: "Lower (Tidal)", min: 0.15, max: 3.50, lat: 53.752, lon: -2.684 }
         ];
 
         const hodderStations = [
-            { name: "Hodder Place (Great Mitton)", measure: "711610-level-stage-i-15_min-m", reach: "Lower Hodder", min: 0.25, max: 1.90, lat: 53.843, lon: -2.438 }
+            { id: "711610", measure: "711610-level-stage-i-15_min-m", name: "Hodder Place (Great Mitton)", reach: "Lower Hodder", min: 0.25, max: 1.90, lat: 53.843, lon: -2.438 }
+        ];
+
+        const wenningStations = [
+            { id: "724323", measure: "724323-level-stage-i-15_min-m", name: "Low Bentham", reach: "Upper Wenning", min: 0.15, max: 1.80, lat: 54.118, lon: -2.548 },
+            { id: "724326", measure: "724326-level-stage-i-15_min-m", name: "Wennington", reach: "Mid Wenning", min: 0.12, max: 1.75, lat: 54.133, lon: -2.593 },
+            { id: "724528", measure: "724528-level-stage-i-15_min-m", name: "Hornby", reach: "Lower Wenning", min: 0.18, max: 2.10, lat: 54.111, lon: -2.632 }
+        ];
+
+        const luneStations = [
+            { id: "724629", measure: "724629-level-stage-i-15_min-m", name: "Caton", reach: "Mid Lune", min: 0.22, max: 3.80, lat: 54.078, lon: -2.715 },
+            { id: "724734", measure: "724734-level-stage-i-15_min-m", name: "Skerton Weir", reach: "Lower Lune", min: 0.35, max: 3.50, lat: 54.058, lon: -2.801 },
+            { id: "724735", measure: "724735-level-stage-i-15_min-m", name: "Lancaster Quay", reach: "Estuary / Tidal", min: 1.60, max: 6.25, lat: 54.051, lon: -2.822 }
         ];
 
         const mintStations = [
-            { name: "Mint Bridge (Kendal)", measure: "730404-level-stage-i-15_min-m", reach: "River Mint", min: 0.18, max: 1.20, lat: 54.341, lon: -2.729 }
+            { id: "730404", measure: "730404-level-stage-i-15_min-m", name: "Mint Bridge (Kendal)", reach: "River Mint", min: 0.18, max: 1.20, lat: 54.341, lon: -2.729 }
         ];
+
+        // Weather Code Interpretation Map
+        function getWeatherIconAndDesc(code) {
+            if (code === 0) return { icon: "☀️", desc: "Clear Sun" };
+            if (code === 1 || code === 2) return { icon: "⛅", desc: "Partly Cloudy" };
+            if (code === 3) return { icon: "☁️", desc: "Overcast" };
+            if (code >= 45 && code <= 48) return { icon: "🌫️", desc: "Foggy" };
+            if (code >= 51 && code <= 55) return { icon: "🌦️", desc: "Light Drizzle" };
+            if (code >= 61 && code <= 65) return { icon: "🌧️", desc: "Rain" };
+            if (code >= 80 && code <= 82) return { icon: "🌧️", desc: "Heavy Showers" };
+            if (code >= 95) return { icon: "⛈️", desc: "Thunderstorms" };
+            return { icon: "🌤️", desc: "Fair Weather" };
+        }
 
         function changeWeatherLocation() {
             const select = document.getElementById('locationSelect');
@@ -336,7 +408,7 @@
 
         // Initialize Map
         function initMap() {
-            mapInstance = L.map('map').setView([53.95, -2.45], 9);
+            mapInstance = L.map('map').setView([54.02, -2.55], 9);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; OpenStreetMap contributors'
             }).addTo(mapInstance);
@@ -348,10 +420,10 @@
             mapMarkers.forEach(m => mapInstance.removeLayer(m));
             mapMarkers = [];
 
-            const allStations = [...ribbleStations, ...hodderStations, ...mintStations];
+            const allStations = [...ribbleStations, ...hodderStations, ...wenningStations, ...luneStations, ...mintStations];
 
             allStations.forEach(st => {
-                const data = dataMap[st.measure] || { levelVal: null, delta: 0 };
+                const data = dataMap[st.id] || { levelVal: null, delta: 0 };
                 let color = "#10b981"; // Normal (Green)
 
                 if (data.levelVal !== null) {
@@ -379,14 +451,21 @@
             });
         }
 
-        // Expanded Weather & 5-Day Forecast API
+        // Weather Forecast API
         async function loadWeatherData() {
             try {
-                const url = `https://api.open-meteo.com/v1/forecast?latitude=${currentLat}&longitude=${currentLon}&current=temperature_2m,relative_humidity_2m,precipitation,surface_pressure,wind_speed_10m&hourly=surface_pressure&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max&forecast_days=5&wind_speed_unit=mph`;
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=${currentLat}&longitude=${currentLon}&current=temperature_2m,relative_humidity_2m,precipitation,surface_pressure,wind_speed_10m,weather_code&hourly=surface_pressure&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weather_code&forecast_days=5&wind_speed_unit=mph`;
                 const res = await fetch(url);
                 const data = await res.json();
 
-                // Current Weather
+                const currentWeather = getWeatherIconAndDesc(data.current.weather_code);
+                
+                // Current Hero Banner
+                document.getElementById('weather-hero-icon').innerText = currentWeather.icon;
+                document.getElementById('weather-hero-desc').innerText = `${currentWeather.desc} (${Math.round(data.current.temperature_2m)}°C)`;
+                document.getElementById('weather-hero-sub').innerText = `Wind: ${Math.round(data.current.wind_speed_10m)}mph • Rain: ${data.current.precipitation}mm`;
+
+                // Current Metric Boxes
                 document.getElementById('weather-temp').innerText = `${Math.round(data.current.temperature_2m)}°C`;
                 document.getElementById('weather-wind').innerText = `${Math.round(data.current.wind_speed_10m)}mph`;
                 document.getElementById('weather-precip').innerText = `${data.current.precipitation}mm`;
@@ -403,12 +482,16 @@
                     const maxTemp = Math.round(data.daily.temperature_2m_max[i]);
                     const minTemp = Math.round(data.daily.temperature_2m_min[i]);
                     const rain = data.daily.precipitation_sum[i];
+                    const dayCondition = getWeatherIconAndDesc(data.daily.weather_code[i]);
 
                     forecastContainer.innerHTML += `
                         <div class="forecast-day">
                             <div class="forecast-date">${dayName}</div>
+                            <div class="forecast-icon">${dayCondition.icon}</div>
                             <div>${maxTemp}° / ${minTemp}°</div>
-                            <div style="color:${rain > 2 ? 'var(--accent-blue)' : 'var(--text-secondary)'}">${rain}mm</div>
+                            <div class="forecast-rain" style="color:${rain > 1.5 ? 'var(--accent-blue)' : 'var(--text-secondary)'}">
+                                ${rain > 0 ? rain + 'mm' : 'Dry'}
+                            </div>
                         </div>
                     `;
                 }
@@ -466,18 +549,28 @@
             } catch(e) { console.error("Solunar error", e); }
         }
 
-        // River Level Telemetry
-        async function fetchSingleMeasure(st) {
+        // Dual-API Route Fetcher (Station ID Primary -> Measure ID Fallback)
+        async function fetchSingleStation(st) {
             try {
-                const res = await fetch(`https://environment.data.gov.uk/flood-monitoring/id/measures/${st.measure}/readings?_limit=2`);
-                const data = await res.json();
+                // Route 1: Direct Station ID
+                let res = await fetch(`https://environment.data.gov.uk/flood-monitoring/id/stations/${st.id}/readings?_limit=2&_sorted`);
+                let data = await res.json();
                 if (data.items && data.items.length > 0) {
                     const latest = data.items[0].value;
                     const previous = data.items[1] ? data.items[1].value : latest;
-                    return { measure: st.measure, levelVal: latest, delta: latest - previous };
+                    return { id: st.id, levelVal: latest, delta: latest - previous };
                 }
-            } catch(e) { console.error(`Error fetching measure ${st.measure}`, e); }
-            return { measure: st.measure, levelVal: null, delta: 0 };
+
+                // Route 2: Fallback Measure Identifier
+                res = await fetch(`https://environment.data.gov.uk/flood-monitoring/id/measures/${st.measure}/readings?_limit=2`);
+                data = await res.json();
+                if (data.items && data.items.length > 0) {
+                    const latest = data.items[0].value;
+                    const previous = data.items[1] ? data.items[1].value : latest;
+                    return { id: st.id, levelVal: latest, delta: latest - previous };
+                }
+            } catch(e) { console.error(`Error fetching station ${st.id}`, e); }
+            return { id: st.id, levelVal: null, delta: 0 };
         }
 
         function renderStationGrid(stationList, containerId, dataMap) {
@@ -485,7 +578,7 @@
             container.innerHTML = '';
 
             for (const station of stationList) {
-                const data = dataMap[station.measure] || { levelVal: null, delta: 0 };
+                const data = dataMap[station.id] || { levelVal: null, delta: 0 };
                 const levelVal = data.levelVal;
                 const delta = data.delta;
                 const valDisplay = levelVal !== null ? `${levelVal.toFixed(2)} m` : "Offline";
@@ -526,22 +619,24 @@
         }
 
         async function loadRiverLevels() {
-            const allStations = [...ribbleStations, ...hodderStations, ...mintStations];
-            const results = await Promise.all(allStations.map(st => fetchSingleMeasure(st)));
+            const allStations = [...ribbleStations, ...hodderStations, ...wenningStations, ...luneStations, ...mintStations];
+            const results = await Promise.all(allStations.map(st => fetchSingleStation(st)));
 
             const dataMap = {};
             results.forEach(item => {
-                dataMap[item.measure] = { levelVal: item.levelVal, delta: item.delta };
+                dataMap[item.id] = { levelVal: item.levelVal, delta: item.delta };
             });
 
             renderStationGrid(ribbleStations, 'ribble-container', dataMap);
             renderStationGrid(hodderStations, 'hodder-container', dataMap);
+            renderStationGrid(wenningStations, 'wenning-container', dataMap);
+            renderStationGrid(luneStations, 'lune-container', dataMap);
             renderStationGrid(mintStations, 'mint-container', dataMap);
 
             updateMapMarkers(dataMap);
         }
 
-        // Initialize execution
+        // Initialize Dashboard Execution
         initMap();
         Promise.all([
             loadWeatherData(),
