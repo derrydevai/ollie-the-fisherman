@@ -159,6 +159,18 @@
         .window-title { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; }
         .window-time { font-size: 12px; font-weight: 600; margin-top: 2px; }
 
+        /* Flexible section ordering */
+        #rivers-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .river-group {
+            display: flex;
+            flex-direction: column;
+            transition: order 0.3s ease;
+        }
+
         .section-header-text {
             font-size: 18px; 
             margin: 28px 0 16px 0; 
@@ -181,10 +193,19 @@
             border-radius: 10px;
             padding: 16px;
             border: 1px solid var(--border-color);
-            transition: transform 0.15s ease;
+            transition: all 0.3s ease;
+            scroll-margin-top: 20px;
         }
 
         .station-card:hover { transform: translateY(-2px); background: var(--bg-card-hover); }
+
+        /* Highlight animation class applied on map pin click */
+        .station-card.highlighted {
+            border-color: var(--accent-green) !important;
+            box-shadow: 0 0 15px rgba(208, 230, 51, 0.4);
+            transform: scale(1.02);
+            background: var(--bg-card-hover);
+        }
 
         .card-header { display: flex; justify-content: space-between; align-items: flex-start; }
         .station-name { font-weight: 600; font-size: 15px; }
@@ -249,14 +270,14 @@
         <div>
             <label for="locationSelect" style="font-size: 12px; color: var(--text-secondary); margin-right: 6px;">Location:</label>
             <select id="locationSelect" class="location-select" onchange="changeWeatherLocation()">
-                <option value="53.871,-2.393" selected>Ribble Valley (Clitheroe)</option>
-                <option value="54.070,-2.278">Upper Ribble (Settle)</option>
-                <option value="53.945,-2.522">Hodder Valley (Dunsop Bridge)</option>
-                <option value="53.758,-2.680">Lower Ribble (Preston)</option>
-                <option value="54.108,-2.610">Lune Valley (Caton / Hornby)</option>
-                <option value="54.051,-2.802">Lower Lune / Estuary (Lancaster)</option>
-                <option value="54.331,-2.735">River Mint (Kendal)</option>
-                <option value="54.295,-3.237">River Duddon (Ulpha)</option>
+                <option value="53.871,-2.393" data-river="group-ribble" selected>Ribble Valley (Clitheroe)</option>
+                <option value="54.070,-2.278" data-river="group-ribble">Upper Ribble (Settle)</option>
+                <option value="53.945,-2.522" data-river="group-hodder">Hodder Valley (Dunsop Bridge)</option>
+                <option value="53.758,-2.680" data-river="group-ribble">Lower Ribble (Preston)</option>
+                <option value="54.108,-2.610" data-river="group-lune">Lune Valley (Caton / Hornby)</option>
+                <option value="54.051,-2.802" data-river="group-lune">Lower Lune / Estuary (Lancaster)</option>
+                <option value="54.331,-2.735" data-river="group-mint">River Mint (Kendal)</option>
+                <option value="54.295,-3.237" data-river="group-duddon">River Duddon (Ulpha)</option>
             </select>
         </div>
     </header>
@@ -332,24 +353,38 @@
         </div>
     </div>
 
-    <!-- RIVER SECTIONS -->
-    <h2 class="section-header-text">🌊 River Ribble (All Species)</h2>
-    <div class="stations-grid" id="ribble-container"></div>
+    <!-- RIVER SECTIONS WRAPPER -->
+    <div id="rivers-wrapper">
+        <div class="river-group" id="group-ribble" style="order: 1;">
+            <h2 class="section-header-text">🌊 River Ribble (All Species)</h2>
+            <div class="stations-grid" id="ribble-container"></div>
+        </div>
 
-    <h2 class="section-header-text">🏞️ River Hodder (Trout & Salmon)</h2>
-    <div class="stations-grid" id="hodder-container"></div>
+        <div class="river-group" id="group-hodder" style="order: 2;">
+            <h2 class="section-header-text">🏞️ River Hodder (Trout & Salmon)</h2>
+            <div class="stations-grid" id="hodder-container"></div>
+        </div>
 
-    <h2 class="section-header-text">🌿 River Wenning (Trout & Grayling)</h2>
-    <div class="stations-grid" id="wenning-container"></div>
+        <div class="river-group" id="group-wenning" style="order: 3;">
+            <h2 class="section-header-text">🌿 River Wenning (Trout & Grayling)</h2>
+            <div class="stations-grid" id="wenning-container"></div>
+        </div>
 
-    <h2 class="section-header-text">🏞️ River Lune (Trout & Salmon)</h2>
-    <div class="stations-grid" id="lune-container"></div>
+        <div class="river-group" id="group-lune" style="order: 4;">
+            <h2 class="section-header-text">🏞️ River Lune (Trout & Salmon)</h2>
+            <div class="stations-grid" id="lune-container"></div>
+        </div>
 
-    <h2 class="section-header-text">⛰️ River Mint (Spate Salmon & Brown Trout)</h2>
-    <div class="stations-grid" id="mint-container"></div>
+        <div class="river-group" id="group-mint" style="order: 5;">
+            <h2 class="section-header-text">⛰️ River Mint (Spate Salmon & Brown Trout)</h2>
+            <div class="stations-grid" id="mint-container"></div>
+        </div>
 
-    <h2 class="section-header-text">⛰️ River Duddon (Spate Salmon & Wild Brown Trout)</h2>
-    <div class="stations-grid" id="duddon-container"></div>
+        <div class="river-group" id="group-duddon" style="order: 6;">
+            <h2 class="section-header-text">⛰️ River Duddon (Spate Salmon & Brown Trout)</h2>
+            <div class="stations-grid" id="duddon-container"></div>
+        </div>
+    </div>
 
     <script>
         let currentLat = 53.871;
@@ -410,15 +445,42 @@
             return { icon: "🌤️", desc: "Fair Weather" };
         }
 
+        function reorderRiverSections(selectedGroup) {
+            const groups = ["group-ribble", "group-hodder", "group-wenning", "group-lune", "group-mint", "group-duddon"];
+            
+            let currentOrder = 2;
+            groups.forEach(groupId => {
+                const el = document.getElementById(groupId);
+                if (el) {
+                    if (groupId === selectedGroup) {
+                        el.style.order = 1;
+                    } else {
+                        el.style.order = currentOrder;
+                        currentOrder++;
+                    }
+                }
+            });
+        }
+
         function changeWeatherLocation() {
             const select = document.getElementById('locationSelect');
+            const selectedOption = select.options[select.selectedIndex];
             const [lat, lon] = select.value.split(',').map(Number);
             currentLat = lat;
             currentLon = lon;
             
-            const selectedText = select.options[select.selectedIndex].text;
+            const selectedText = selectedOption.text;
             document.getElementById('weather-location-label').innerText = `${selectedText} Weather`;
             
+            const targetRiverGroup = selectedOption.getAttribute('data-river');
+            if (targetRiverGroup) {
+                reorderRiverSections(targetRiverGroup);
+            }
+
+            if (mapInstance) {
+                mapInstance.setView([currentLat, currentLon], 10, { animate: true });
+            }
+
             loadWeatherData().then(() => loadRiverLevels());
             loadSolunarData();
         }
@@ -428,6 +490,18 @@
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; OpenStreetMap contributors'
             }).addTo(mapInstance);
+        }
+
+        function scrollToStationCard(stationId) {
+            const el = document.getElementById(`station-card-${stationId}`);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                el.classList.add('highlighted');
+                setTimeout(() => {
+                    el.classList.remove('highlighted');
+                }, 2500);
+            }
         }
 
         function updateMapMarkers(dataMap) {
@@ -453,13 +527,18 @@
                     radius: 7
                 }).addTo(mapInstance);
 
+                circle.on('click', () => {
+                    scrollToStationCard(st.id);
+                });
+
                 const valStr = data.levelVal !== null ? `${data.levelVal.toFixed(2)}m` : 'Offline';
                 const trendStr = data.delta > 0.005 ? '▲ Rising' : (data.delta < -0.005 ? '▼ Falling' : '━ Steady');
 
                 circle.bindPopup(`
                     <strong style="color:#d0e633">${st.name}</strong><br>
                     Level: <b>${valStr}</b> (${trendStr})<br>
-                    Normal: ${st.min}m - ${st.max}m
+                    Normal: ${st.min}m - ${st.max}m<br>
+                    <small style="color:var(--text-secondary); text-decoration:underline;">Click to focus card 👇</small>
                 `);
 
                 mapMarkers.push(circle);
@@ -622,7 +701,7 @@
                 } else if (isLow) {
                     tacticalTip = "Trout in pot-holes. Needs fresh rain to lift migrating salmon from Kent.";
                 } else {
-                    tacticalTip = "Target wild browns on dries; watch for sudden water lifts.";
+                    tacticalTip = "Target brown trout on dries; watch for sudden water lifts.";
                 }
 
                 speciesRows.push({ name: "🎣 Salmon (Spate Run)", label: salmon.label, badgeClass: salmon.badgeClass });
@@ -630,19 +709,19 @@
             }
             else if (station.riverType === "duddon") {
                 let salmon = { label: "Low (Waiting Rain)", badgeClass: "fci-mod" };
-                let trout = { label: "Good Wild Fly", badgeClass: "fci-good" };
+                let trout = { label: "Good Fly Water", badgeClass: "fci-good" };
 
                 if (isRising || (isFalling && isHigh)) {
                     salmon = { label: "🔥 SPATE RUN", badgeClass: "fci-prime" };
                     tacticalTip = "Classic Lake District spate push! Fish dark flea flies/Cascades in deep fell pools.";
                 } else if (isLow) {
-                    tacticalTip = "Ultra clear water. Use stealth, fine tippet (#16-18 dry flies) for wild mountain trout.";
+                    tacticalTip = "Ultra clear water. Use stealth, fine tippet (#16-18 dry flies) for brown trout.";
                 } else {
                     tacticalTip = "Search boulder runs with Duo setups (Klink & nymph).";
                 }
 
                 speciesRows.push({ name: "🎣 Salmon / Sea Trout", label: salmon.label, badgeClass: salmon.badgeClass });
-                speciesRows.push({ name: "🍃 Wild Brown Trout", label: trout.label, badgeClass: trout.badgeClass });
+                speciesRows.push({ name: "🍃 Brown Trout", label: trout.label, badgeClass: trout.badgeClass });
             }
             else if (station.riverType === "hodder") {
                 let salmon = { label: "Moderate", badgeClass: "fci-mod" };
@@ -749,7 +828,7 @@
                 }
 
                 container.innerHTML += `
-                    <div class="station-card">
+                    <div class="station-card" id="station-card-${station.id}">
                         <div class="card-header">
                             <span class="station-name">${station.name}</span>
                             <span class="reach-tag">${station.reach}</span>
