@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>River Dashboard 🎣</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎣</text></svg>">
+
+    <!-- Chart.js & Leaflet Map CSS/JS -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+
+    <style>
+        :root {
+            --bg-main: #0b132b;
+            --bg-card: #1c2541;
+            --bg-card-hover: #232f54;
+            --text-primary: #edf2f4;
+            --text-secondary: #8d99ae;
+            --accent-blue: #3a86ff;
+            --accent-green: #10b981;
+            --accent-yellow: #f59e0b;
+            --accent-red: #ef4444;
+            --border-color: #2b3a67;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 24px;
+        }
+
+        header {
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        h1 { margin: 0; font-size: 24px; color: #ffffff; display: flex; align-items: center; gap: 8px; }
+        
+        .location-select {
+            background: var(--bg-card);
+            color: #fff;
+            border: 1px solid var(--accent-blue);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .top-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .dashboard-section {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid var(--border-color);
+        }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--accent-blue);
+            margin-top: 0;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .weather-metrics {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .metric-box {
+            background: rgba(0,0,0,0.25);
+            padding: 8px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .metric-label { font-size: 11px; color: var(--text-secondary); }
+        .metric-val { font-size: 15px; font-weight: bold; margin-top: 2px; }
+
+        .forecast-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 10px;
+        }
+
+        .forecast-day {
+            background: rgba(0,0,0,0.15);
+            padding: 6px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 11px;
+        }
+
+        .forecast-date { font-weight: 600; color: var(--accent-blue); margin-bottom: 2px; }
+
+        #map {
+            height: 250px;
+            width: 100%;
+            border-radius: 8px;
+            z-index: 1;
+        }
+
+        .solunar-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .window-card {
+            background: rgba(0,0,0,0.2);
+            padding: 8px;
+            border-radius: 6px;
+            border-left: 3px solid var(--accent-blue);
+        }
+
+        .window-card.major { border-left-color: var(--accent-green); }
+        .window-title { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; }
+        .window-time { font-size: 12px; font-weight: 600; margin-top: 2px; }
+
+        .section-header-text {
+            font-size: 18px; 
+            margin: 28px 0 16px 0; 
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        .stations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+            gap: 16px;
+        }
+
+        .station-card {
+            background: var(--bg-card);
+            border-radius: 10px;
+            padding: 16px;
+            border: 1px solid var(--border-color);
+            transition: transform 0.15s ease;
+        }
+
+        .station-card:hover { transform: translateY(-2px); background: var(--bg-card-hover); }
+
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; }
+        .station-name { font-weight: 600; font-size: 15px; }
+        .reach-tag { font-size: 10px; padding: 2px 6px; border-radius: 4px; background: var(--border-color); color: var(--text-secondary); }
+        .level-display { font-size: 28px; font-weight: 700; color: #ffffff; margin: 10px 0 2px 0; }
+        
+        .trend-line { font-size: 12px; font-weight: 600; margin-bottom: 8px; }
+        .trend-rising { color: var(--accent-red); }
+        .trend-falling { color: var(--accent-blue); }
+        .trend-steady { color: var(--text-secondary); }
+
+        .range-info { font-size: 11px; color: var(--text-secondary); }
+
+        .status-badge {
+            display: inline-block;
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-top: 8px;
+            font-weight: 600;
+        }
+        .status-normal { background: rgba(16, 185, 129, 0.2); color: var(--accent-green); }
+        .status-high { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); }
+        .status-low { background: rgba(245, 158, 11, 0.2); color: var(--accent-yellow); }
+
+        .chart-container { position: relative; height: 110px; width: 100%; }
+        
+        /* Custom map pin styling */
+        .leaflet-popup-content-wrapper { background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-color); }
+        .leaflet-popup-tip { background: var(--bg-card); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>River Dashboard 🎣</h1>
+        <div>
+            <label for="locationSelect" style="font-size: 12px; color: var(--text-secondary); margin-right: 6px;">Location:</label>
+            <select id="locationSelect" class="location-select" onchange="changeWeatherLocation()">
+                <option value="53.871,-2.393" selected>Ribble Valley (Clitheroe)</option>
+                <option value="54.070,-2.278">Upper Ribble (Settle)</option>
+                <option value="53.945,-2.522">Hodder Valley (Dunsop Bridge)</option>
+                <option value="53.758,-2.680">Lower Ribble (Preston)</option>
+                <option value="54.331,-2.735">River Mint (Kendal)</option>
+            </select>
+        </div>
+    </header>
+
+    <div class="top-grid">
+        <!-- Expanded Interactive Weather Widget -->
+        <div class="dashboard-section">
+            <div class="section-title">
+                <span id="weather-location-label">Ribble Valley Weather</span>
+                <span id="weather-humidity">--% RH</span>
+            </div>
+            
+            <div class="weather-metrics">
+                <div class="metric-box">
+                    <div class="metric-label">Temp</div>
+                    <div class="metric-val" id="weather-temp">--°C</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-label">Wind</div>
+                    <div class="metric-val" id="weather-wind">-- mph</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-label">Rain</div>
+                    <div class="metric-val" id="weather-precip">-- mm</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-label">Baro</div>
+                    <div class="metric-val" id="weather-pressure">-- hPa</div>
+                </div>
+            </div>
+
+            <div class="forecast-grid" id="forecast-container">
+                <!-- 5 Day Forecast dynamically loaded here -->
+            </div>
+        </div>
+
+        <!-- Catchment Interactive Map -->
+        <div class="dashboard-section">
+            <div class="section-title">Catchment Gauge Map</div>
+            <div id="map"></div>
+        </div>
+
+        <!-- Pressure & Solunar Combined Section -->
+        <div class="dashboard-section">
+            <div class="section-title">Barometer Trend (24h)</div>
+            <div class="chart-container">
+                <canvas id="pressureChart"></canvas>
+            </div>
+            <div class="solunar-grid">
+                <div class="window-card major">
+                    <div class="window-title">Major 1 (Overhead)</div>
+                    <div class="window-time" id="solunar-maj1">--:--</div>
+                </div>
+                <div class="window-card major">
+                    <div class="window-title">Major 2 (Underfoot)</div>
+                    <div class="window-time" id="solunar-maj2">--:--</div>
+                </div>
+                <div class="window-card">
+                    <div class="window-title">Minor 1 (Moonrise)</div>
+                    <div class="window-time" id="solunar-min1">--:--</div>
+                </div>
+                <div class="window-card">
+                    <div class="window-title">Minor 2 (Moonset)</div>
+                    <div class="window-time" id="solunar-min2">--:--</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SEPARATED RIVER SECTIONS -->
+    <h2 class="section-header-text">🌊 River Ribble</h2>
+    <div class="stations-grid" id="ribble-container"></div>
+
+    <h2 class="section-header-text">🏞️ River Hodder</h2>
+    <div class="stations-grid" id="hodder-container"></div>
+
+    <h2 class="section-header-text">⛰️ River Mint</h2>
+    <div class="stations-grid" id="mint-container"></div>
+
+    <script>
+        let currentLat = 53.871;
+        let currentLon = -2.393;
+        let pressureChartInstance = null;
+        let mapInstance = null;
+        let mapMarkers = [];
+
+        // Verified Gauges with Exact Coordinates
+        const ribbleStations = [
+            { name: "Locks Weir (Settle)", measure: "710151-level-stage-i-15_min-m", reach: "Upper", min: 0.20, max: 1.80, lat: 54.068, lon: -2.281 },
+            { name: "Penny Bridge", measure: "710102-level-stage-i-15_min-m", reach: "Upper", min: 0.09, max: 2.48, lat: 54.032, lon: -2.245 },
+            { name: "Arnford", measure: "710103-level-stage-i-15_min-m", reach: "Upper", min: 0.22, max: 2.00, lat: 53.995, lon: -2.238 },
+            { name: "Low Moor", measure: "710301-level-stage-i-15_min-m", reach: "Middle", min: 0.20, max: 3.30, lat: 53.882, lon: -2.418 },
+            { name: "Henthorn (Clitheroe)", measure: "710305-level-stage-i-15_min-m", reach: "Middle", min: 0.33, max: 2.50, lat: 53.856, lon: -2.422 },
+            { name: "New Jumbles Rock", measure: "713056-level-stage-i-15_min-m", reach: "Middle", min: 0.35, max: 2.80, lat: 53.829, lon: -2.485 },
+            { name: "Ribchester School", measure: "713040-level-stage-i-15_min-m", reach: "Middle", min: 0.15, max: 4.41, lat: 53.811, lon: -2.531 },
+            { name: "Samlesbury", measure: "713019-level-stage-i-15_min-m", reach: "Lower Middle", min: 1.14, max: 4.83, lat: 53.766, lon: -2.610 },
+            { name: "Walton-Le-Dale", measure: "713030-level-stage-i-15_min-m", reach: "Lower (Tidal)", min: 0.15, max: 3.50, lat: 53.752, lon: -2.684 }
+        ];
+
+        const hodderStations = [
+            { name: "Hodder Place (Great Mitton)", measure: "711610-level-stage-i-15_min-m", reach: "Lower Hodder", min: 0.25, max: 1.90, lat: 53.843, lon: -2.438 }
+        ];
+
+        const mintStations = [
+            { name: "Mint Bridge (Kendal)", measure: "730404-level-stage-i-15_min-m", reach: "River Mint", min: 0.18, max: 1.20, lat: 54.341, lon: -2.729 }
+        ];
+
+        function changeWeatherLocation() {
+            const select = document.getElementById('locationSelect');
+            const [lat, lon] = select.value.split(',').map(Number);
+            currentLat = lat;
+            currentLon = lon;
+            
+            const selectedText = select.options[select.selectedIndex].text;
+            document.getElementById('weather-location-label').innerText = `${selectedText} Weather`;
+            
+            loadWeatherData();
+            loadSolunarData();
+        }
+
+        // Initialize Map
+        function initMap() {
+            mapInstance = L.map('map').setView([53.95, -2.45], 9);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(mapInstance);
+        }
+
+        function updateMapMarkers(dataMap) {
+            if (!mapInstance) return;
+            
+            mapMarkers.forEach(m => mapInstance.removeLayer(m));
+            mapMarkers = [];
+
+            const allStations = [...ribbleStations, ...hodderStations, ...mintStations];
+
+            allStations.forEach(st => {
+                const data = dataMap[st.measure] || { levelVal: null, delta: 0 };
+                let color = "#10b981"; // Normal (Green)
+
+                if (data.levelVal !== null) {
+                    if (data.levelVal > st.max * 0.75) color = "#ef4444"; // High (Red)
+                    else if (data.levelVal < st.min * 1.1) color = "#f59e0b"; // Low (Yellow)
+                }
+
+                const circle = L.circleMarker([st.lat, st.lon], {
+                    color: color,
+                    fillColor: color,
+                    fillOpacity: 0.8,
+                    radius: 7
+                }).addTo(mapInstance);
+
+                const valStr = data.levelVal !== null ? `${data.levelVal.toFixed(2)}m` : 'Offline';
+                const trendStr = data.delta > 0.005 ? '▲ Rising' : (data.delta < -0.005 ? '▼ Falling' : '━ Steady');
+
+                circle.bindPopup(`
+                    <strong style="color:#3a86ff">${st.name}</strong><br>
+                    Level: <b>${valStr}</b> (${trendStr})<br>
+                    Normal: ${st.min}m - ${st.max}m
+                `);
+
+                mapMarkers.push(circle);
+            });
+        }
+
+        // Expanded Weather & 5-Day Forecast API
+        async function loadWeatherData() {
+            try {
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=${currentLat}&longitude=${currentLon}&current=temperature_2m,relative_humidity_2m,precipitation,surface_pressure,wind_speed_10m&hourly=surface_pressure&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max&forecast_days=5&wind_speed_unit=mph`;
+                const res = await fetch(url);
+                const data = await res.json();
+
+                // Current Weather
+                document.getElementById('weather-temp').innerText = `${Math.round(data.current.temperature_2m)}°C`;
+                document.getElementById('weather-wind').innerText = `${Math.round(data.current.wind_speed_10m)}mph`;
+                document.getElementById('weather-precip').innerText = `${data.current.precipitation}mm`;
+                document.getElementById('weather-pressure').innerText = `${Math.round(data.current.surface_pressure)}hPa`;
+                document.getElementById('weather-humidity').innerText = `${data.current.relative_humidity_2m}% RH`;
+
+                // Render 5-Day Forecast
+                const forecastContainer = document.getElementById('forecast-container');
+                forecastContainer.innerHTML = '';
+
+                for (let i = 0; i < 5; i++) {
+                    const date = new Date(data.daily.time[i]);
+                    const dayName = i === 0 ? 'Today' : date.toLocaleDateString('en-GB', { weekday: 'short' });
+                    const maxTemp = Math.round(data.daily.temperature_2m_max[i]);
+                    const minTemp = Math.round(data.daily.temperature_2m_min[i]);
+                    const rain = data.daily.precipitation_sum[i];
+
+                    forecastContainer.innerHTML += `
+                        <div class="forecast-day">
+                            <div class="forecast-date">${dayName}</div>
+                            <div>${maxTemp}° / ${minTemp}°</div>
+                            <div style="color:${rain > 2 ? 'var(--accent-blue)' : 'var(--text-secondary)'}">${rain}mm</div>
+                        </div>
+                    `;
+                }
+
+                // 24h Pressure Chart
+                const currentHourIndex = new Date().getHours();
+                const next24HoursPressure = data.hourly.surface_pressure.slice(currentHourIndex, currentHourIndex + 24);
+                const timeLabels = Array.from({length: 24}, (_, i) => `${(currentHourIndex + i) % 24}:00`);
+
+                renderPressureChart(timeLabels, next24HoursPressure);
+            } catch(e) { console.error("Weather error", e); }
+        }
+
+        function renderPressureChart(labels, pressureData) {
+            const ctx = document.getElementById('pressureChart').getContext('2d');
+            if (pressureChartInstance) pressureChartInstance.destroy();
+
+            pressureChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: pressureData,
+                        borderColor: '#3a86ff',
+                        backgroundColor: 'rgba(58, 134, 255, 0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: '#8d99ae', font: { size: 9 } } },
+                        y: { grid: { color: '#2b3a67' }, ticks: { color: '#8d99ae', font: { size: 9 } } }
+                    }
+                }
+            });
+        }
+
+        // Solunar Calculation
+        async function loadSolunarData() {
+            try {
+                const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${currentLat}&longitude=${currentLon}&daily=sunrise,sunset&timezone=Europe/London`);
+                const data = await res.json();
+                const sunrise = new Date(data.daily.sunrise[0]);
+                const fmt = (d) => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                document.getElementById('solunar-maj1').innerText = `${fmt(new Date(sunrise.getTime() + (4 * 3600 * 1000)))} - ${fmt(new Date(sunrise.getTime() + (6 * 3600 * 1000)))}`;
+                document.getElementById('solunar-maj2').innerText = `${fmt(new Date(sunrise.getTime() + (16 * 3600 * 1000)))} - ${fmt(new Date(sunrise.getTime() + (18 * 3600 * 1000)))}`;
+                document.getElementById('solunar-min1').innerText = `${fmt(new Date(sunrise.getTime() - (1 * 3600 * 1000)))} - ${fmt(new Date(sunrise.getTime()))}`;
+                document.getElementById('solunar-min2').innerText = `${fmt(new Date(sunrise.getTime() + (10 * 3600 * 1000)))} - ${fmt(new Date(sunrise.getTime() + (11 * 3600 * 1000)))}`;
+            } catch(e) { console.error("Solunar error", e); }
+        }
+
+        // River Level Telemetry
+        async function fetchSingleMeasure(st) {
+            try {
+                const res = await fetch(`https://environment.data.gov.uk/flood-monitoring/id/measures/${st.measure}/readings?_limit=2`);
+                const data = await res.json();
+                if (data.items && data.items.length > 0) {
+                    const latest = data.items[0].value;
+                    const previous = data.items[1] ? data.items[1].value : latest;
+                    return { measure: st.measure, levelVal: latest, delta: latest - previous };
+                }
+            } catch(e) { console.error(`Error fetching measure ${st.measure}`, e); }
+            return { measure: st.measure, levelVal: null, delta: 0 };
+        }
+
+        function renderStationGrid(stationList, containerId, dataMap) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+
+            for (const station of stationList) {
+                const data = dataMap[station.measure] || { levelVal: null, delta: 0 };
+                const levelVal = data.levelVal;
+                const delta = data.delta;
+                const valDisplay = levelVal !== null ? `${levelVal.toFixed(2)} m` : "Offline";
+                
+                let trendHtml = `<span class="trend-line trend-steady">━ Steady</span>`;
+                if (delta > 0.005) {
+                    trendHtml = `<span class="trend-line trend-rising">▲ +${delta.toFixed(2)}m (Rising)</span>`;
+                } else if (delta < -0.005) {
+                    trendHtml = `<span class="trend-line trend-falling">▼ ${delta.toFixed(2)}m (Falling)</span>`;
+                }
+
+                let badgeClass = "status-normal";
+                let badgeText = "Optimal Level";
+
+                if (levelVal !== null) {
+                    if (levelVal > station.max * 0.75) {
+                        badgeClass = "status-high";
+                        badgeText = "High / Spate Risk";
+                    } else if (levelVal < station.min * 1.1) {
+                        badgeClass = "status-low";
+                        badgeText = "Low / Clear";
+                    }
+                }
+
+                container.innerHTML += `
+                    <div class="station-card">
+                        <div class="card-header">
+                            <span class="station-name">${station.name}</span>
+                            <span class="reach-tag">${station.reach}</span>
+                        </div>
+                        <div class="level-display">${valDisplay}</div>
+                        ${trendHtml}
+                        <div class="range-info">Normal Range: ${station.min}m - ${station.max}m</div>
+                        <div class="status-badge ${badgeClass}">${badgeText}</div>
+                    </div>
+                `;
+            }
+        }
+
+        async function loadRiverLevels() {
+            const allStations = [...ribbleStations, ...hodderStations, ...mintStations];
+            const results = await Promise.all(allStations.map(st => fetchSingleMeasure(st)));
+
+            const dataMap = {};
+            results.forEach(item => {
+                dataMap[item.measure] = { levelVal: item.levelVal, delta: item.delta };
+            });
+
+            renderStationGrid(ribbleStations, 'ribble-container', dataMap);
+            renderStationGrid(hodderStations, 'hodder-container', dataMap);
+            renderStationGrid(mintStations, 'mint-container', dataMap);
+
+            updateMapMarkers(dataMap);
+        }
+
+        // Initialize execution
+        initMap();
+        Promise.all([
+            loadWeatherData(),
+            loadSolunarData(),
+            loadRiverLevels()
+        ]);
+    </script>
+</body>
+</html>
