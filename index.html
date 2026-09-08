@@ -1191,24 +1191,55 @@
             }
         }
         
-                 async function loadRiverLevels() {
-            const allStations = [...ribbleStations, ...hodderStations, ...wenningStations, ...luneStations, ...mintStations, ...duddonStations];
-            const dataMap = {};
-
-            allStations.forEach(st => {
-                dataMap[st.id] = { levelVal: null, delta: 0, status: 'offline' };
-            });
-
+                        async function fetchSingleStation(st) {
             try {
-                // Official EA bulk latest readings endpoint
-                const response = await fetch('https://environment.data.gov.uk/flood-monitoring/data/readings?latest');
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                // If measure string exists, fetch directly; otherwise build EA API endpoint
+                const url = st.measure 
+                    ? `https://environment.data.gov.uk/flood-monitoring/id/measures/${st.measure}`
+                    : `https://environment.data.gov.uk/flood-monitoring/id/stations/${st.id}/measures`;
 
-                const data = await response.json();
-                const readings = data.items || [];
+                const res = await fetch(url);
+                if (!res.ok) return { id: st.id, levelVal: null, delta: 0 };
 
-                // Index readings by measure URI string
-                const readingsByMeasure = {};
+                const data = await res.json();
+                const items = Array.isArray(data.items) ? data.items : [data.items];
+                const measure = items.find(m => m && m.latestReading) || items[0];
+
+                if (measure && measure.latestReading && measure.latestReading.value !== undefined) {
+                    return { id: st.id, levelVal: Number(measure.latestReading.value), delta: 0 };
+                }
+            } catch (e) {
+                console.warn(`Station ${st.id} fetch error:`, e);
+            }
+            return { id: st.id, levelVal: null, delta: 0 };
+        }
+
+        async function loadRiverLevels() {
+            const allStations = [...ribbleStations, ...hodderStations, ...wenningStations, ...luneStations, ...mintStations, ...duddonStations];
+            
+            try {
+                const results = await Promise.all(allStations.map(st => fetchSingleStation(st)));
+                const dataMap = {};
+
+                results.forEach(item => {
+                    if (item && item.id) {
+                        dataMap[item.id] = { levelVal: item.levelVal, delta: item.delta };
+                    }
+                });
+
+                renderStationGrid(ribbleStations, 'ribble-container', dataMap);
+                renderStationGrid(hodderStations, 'hodder-container', dataMap);
+                renderStationGrid(wenningStations, 'wenning-container', dataMap);
+                renderStationGrid(luneStations, 'lune-container', dataMap);
+                renderStationGrid(mintStations, 'mint-container', dataMap);
+                renderStationGrid(duddonStations, 'duddon-container', dataMap);
+
+                updateMapMarkers(dataMap);
+            } catch (err) {
+                console.error("Error executing loadRiverLevels:", err);
+            }
+        }
+
                 readings.forEach(r => {
                     if (r.measure && r.value !== undefined) {
                         readingsByMeasure[r.measure] = r.value;
