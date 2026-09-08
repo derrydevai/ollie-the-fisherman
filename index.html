@@ -127,7 +127,6 @@
             color: #c5d4cf !important;
         }
 
-        /* Hourly Weather Ribbon Styling */
         .hourly-forecast-container {
             margin-bottom: 12px;
             border-top: 1px solid var(--border-color);
@@ -193,7 +192,6 @@
         .forecast-date { font-weight: 700; color: var(--accent-green); margin-bottom: 4px; }
         .forecast-icon { font-size: 20px; margin: 4px 0; }
 
-        /* EXPANDED MAP HEIGHT TO BALANCE TOP GRID */
         #map { 
             height: 480px; 
             width: 100%; 
@@ -263,7 +261,6 @@
             opacity: 1;
         }
 
-        /* BAROMETRIC TREND BOX */
         .baro-trend-box {
             background: rgba(10, 15, 13, 0.4);
             border: 1px solid var(--border-color);
@@ -297,7 +294,6 @@
         .window-title { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; }
         .window-time { font-size: 12px; font-weight: 600; margin-top: 2px; }
 
-        /* MOON PHASE BADGE */
         .moon-card {
             background: rgba(10, 15, 13, 0.4);
             border: 1px solid var(--border-color);
@@ -909,77 +905,6 @@
             } catch(e) { console.error("Solunar error", e); }
         }
 
-        /**
-         * Dynamic Station Fetcher:
-         * Handles RLOI IDs (e.g. 9127) & measures lookup fallback to guarantee live data feed
-         */
-        async function fetchSingleStation(st) {
-            try {
-                let stationRef = st.id;
-                let stationObj = null;
-
-                // 1. Resolve RLOI IDs or check direct station object
-                if (st.id.length <= 5) {
-                    const rloiRes = await fetch(`https://environment.data.gov.uk/flood-monitoring/id/stations?RLOIid=${st.id}`);
-                    if (rloiRes.ok) {
-                        const rloiData = await rloiRes.json();
-                        if (rloiData.items && rloiData.items.length > 0) {
-                            stationObj = rloiData.items[0];
-                            stationRef = stationObj.notation || stationObj.stationReference;
-                        }
-                    }
-                }
-
-                if (!stationObj) {
-                    const stRes = await fetch(`https://environment.data.gov.uk/flood-monitoring/id/stations/${st.id}`);
-                    if (stRes.ok) {
-                        const stData = await stRes.json();
-                        stationObj = stData.items;
-                        stationRef = stationObj ? (stationObj.notation || stationObj.stationReference || st.id) : st.id;
-                    }
-                }
-
-                // 2. Resolve readings (Direct reading or fallback to measures endpoint)
-                let latestReading = stationObj ? stationObj.latestReading : null;
-
-                if (!latestReading && st.measure) {
-                    const mRes = await fetch(`https://environment.data.gov.uk/flood-monitoring/id/measures/${st.measure}/readings?_limit=2`);
-                    if (mRes.ok) {
-                        const mData = await mRes.json();
-                        if (mData.items && mData.items.length > 0) {
-                            const latest = mData.items[0].value;
-                            const previous = mData.items[1] ? mData.items[1].value : latest;
-                            return { id: st.id, levelVal: latest, delta: latest - previous, status: 'online' };
-                        }
-                    }
-                }
-
-                if (!latestReading) {
-                    const measuresRes = await fetch(`https://environment.data.gov.uk/flood-monitoring/id/stations/${stationRef}/measures`);
-                    if (measuresRes.ok) {
-                        const measuresData = await measuresRes.json();
-                        if (measuresData.items) {
-                            const items = Array.isArray(measuresData.items) ? measuresData.items : [measuresData.items];
-                            const levelMeasure = items.find(m => m.latestReading) || items[0];
-                            if (levelMeasure) {
-                                latestReading = levelMeasure.latestReading;
-                            }
-                        }
-                    }
-                }
-
-                if (latestReading && latestReading.value !== undefined) {
-                    const latest = latestReading.value;
-                    return { id: st.id, levelVal: latest, delta: 0, status: 'online' };
-                }
-
-            } catch(e) { 
-                console.warn(`Error fetching station ${st.id}:`, e); 
-            }
-            
-            return { id: st.id, levelVal: null, delta: 0, status: 'offline' };
-        }
-
         function calculateFCI(station, levelVal, delta) {
             if (levelVal === null) return null;
 
@@ -1190,10 +1115,9 @@
                 `;
             }
         }
-        
-                        async function fetchSingleStation(st) {
+
+        async function fetchSingleStation(st) {
             try {
-                // If measure string exists, fetch directly; otherwise build EA API endpoint
                 const url = st.measure 
                     ? `https://environment.data.gov.uk/flood-monitoring/id/measures/${st.measure}`
                     : `https://environment.data.gov.uk/flood-monitoring/id/stations/${st.id}/measures`;
@@ -1215,11 +1139,33 @@
         }
 
         async function loadRiverLevels() {
+            const cacheKey = 'river_levels_cache';
+            const cacheTimeKey = 'river_levels_timestamp';
+            const CACHE_DURATION_MS = 15 * 60 * 1000; // 15 minutes
+
             const allStations = [...ribbleStations, ...hodderStations, ...wenningStations, ...luneStations, ...mintStations, ...duddonStations];
-            
+            let dataMap = {};
+
+            // 1. Check local cache first
+            const cachedData = localStorage.getItem(cacheKey);
+            const cachedTimestamp = localStorage.getItem(cacheTimeKey);
+            const now = Date.now();
+
+            if (cachedData && cachedTimestamp && (now - Number(cachedTimestamp) < CACHE_DURATION_MS)) {
+                dataMap = JSON.parse(cachedData);
+                renderStationGrid(ribbleStations, 'ribble-container', dataMap);
+                renderStationGrid(hodderStations, 'hodder-container', dataMap);
+                renderStationGrid(wenningStations, 'wenning-container', dataMap);
+                renderStationGrid(luneStations, 'lune-container', dataMap);
+                renderStationGrid(mintStations, 'mint-container', dataMap);
+                renderStationGrid(duddonStations, 'duddon-container', dataMap);
+                updateMapMarkers(dataMap);
+                return;
+            }
+
+            // 2. Fetch fresh data if expired or missing
             try {
                 const results = await Promise.all(allStations.map(st => fetchSingleStation(st)));
-                const dataMap = {};
 
                 results.forEach(item => {
                     if (item && item.id) {
@@ -1227,51 +1173,11 @@
                     }
                 });
 
-                renderStationGrid(ribbleStations, 'ribble-container', dataMap);
-                renderStationGrid(hodderStations, 'hodder-container', dataMap);
-                renderStationGrid(wenningStations, 'wenning-container', dataMap);
-                renderStationGrid(luneStations, 'lune-container', dataMap);
-                renderStationGrid(mintStations, 'mint-container', dataMap);
-                renderStationGrid(duddonStations, 'duddon-container', dataMap);
-
-                updateMapMarkers(dataMap);
+                localStorage.setItem(cacheKey, JSON.stringify(dataMap));
+                localStorage.setItem(cacheTimeKey, now.toString());
             } catch (err) {
                 console.error("Error executing loadRiverLevels:", err);
             }
-        }
-
-                readings.forEach(r => {
-                    if (r.measure && r.value !== undefined) {
-                        readingsByMeasure[r.measure] = r.value;
-                        // Also index by measure ID string (e.g. "http://.../id/measures/12345-level")
-                        const parts = r.measure.split('/');
-                        const measureId = parts[parts.length - 1];
-                        readingsByMeasure[measureId] = r.value;
-                    }
-                });
-
-                for (const st of allStations) {
-                    let val = null;
-
-                    if (st.measure && readingsByMeasure[st.measure] !== undefined) {
-                        val = readingsByMeasure[st.measure];
-                    } else if (readingsByMeasure[st.id] !== undefined) {
-                        val = readingsByMeasure[st.id];
-                    } else if (readingsByMeasure[`${st.id}-level-stage-i-15_min-m`] !== undefined) {
-                        val = readingsByMeasure[`${st.id}-level-stage-i-15_min-m`];
-                    }
-
-                    if (val !== null && val !== undefined) {
-                        dataMap[st.id] = {
-                            levelVal: Number(val),
-                            delta: 0,
-                            status: 'online'
-                        };
-                    }
-                }
-            } catch (err) {
-                console.error("Failed to load EA river level data:", err);
-            }
 
             renderStationGrid(ribbleStations, 'ribble-container', dataMap);
             renderStationGrid(hodderStations, 'hodder-container', dataMap);
@@ -1283,92 +1189,7 @@
             updateMapMarkers(dataMap);
         }
 
-
-                if (!response.ok) {
-                    throw new Error(`EA API returned HTTP ${response.status}`);
-                }
-
-                const data = await response.json();
-                const measures = data.items || [];
-
-                // Create a quick lookup map of measures by station notation / measure ID
-                const measuresByNotation = {};
-                measures.forEach(m => {
-                    const latest = m.latestReading;
-                    if (latest && latest.value !== undefined) {
-                        // Extract station reference/notation
-                        if (m.stationReference) {
-                            measuresByNotation[m.stationReference] = latest.value;
-                        }
-                        if (m['@id']) {
-                            measuresByNotation[m['@id']] = latest.value;
-                        }
-                        if (m.notation) {
-                            measuresByNotation[m.notation] = latest.value;
-                        }
-                    }
-                });
-
-                // Map readings back to dashboard station definitions
-                for (const st of allStations) {
-                    let foundVal = null;
-
-                    // Match via measure key, station ID, or notation
-                    if (st.measure && measuresByNotation[st.measure]) {
-                        foundVal = measuresByNotation[st.measure];
-                    } else if (measuresByNotation[st.id]) {
-                        foundVal = measuresByNotation[st.id];
-                    }
-
-                    // Special fallback for RLOI 9127 (Skerton Weir) if batch lookup misses
-                    if (foundVal === null && (st.id === "9127" || st.name.includes("Skerton"))) {
-                        try {
-                            const skertonRes = await fetch(`https://environment.data.gov.uk/flood-monitoring/id/stations?RLOIid=9127`);
-                            if (skertonRes.ok) {
-                                const skertonData = await skertonRes.json();
-                                const skertonStation = skertonData.items && skertonData.items[0];
-                                const skertonRef = skertonStation ? (skertonStation.notation || skertonStation.stationReference) : '724647';
-                                
-                                const mRes = await fetch(`https://environment.data.gov.uk/flood-monitoring/id/stations/${skertonRef}/measures`);
-                                if (mRes.ok) {
-                                    const mData = await mRes.json();
-                                    const items = Array.isArray(mData.items) ? mData.items : [mData.items];
-                                    const levelMeasure = items.find(m => m.latestReading) || items[0];
-                                    if (levelMeasure && levelMeasure.latestReading) {
-                                        foundVal = levelMeasure.latestReading.value;
-                                    }
-                                }
-                            }
-                        } catch (e) {
-                            console.warn("Skerton fallback fetch failed", e);
-                        }
-                    }
-
-                    if (foundVal !== null) {
-                        dataMap[st.id] = {
-                            levelVal: Number(foundVal),
-                            delta: 0, // Delta evaluates when historical points are stored
-                            status: 'online'
-                        };
-                    }
-                }
-
-            } catch (err) {
-                console.error("Batch fetch error for EA Flood API:", err);
-            }
-
-            // Render all grids with resolved data
-            renderStationGrid(ribbleStations, 'ribble-container', dataMap);
-            renderStationGrid(hodderStations, 'hodder-container', dataMap);
-            renderStationGrid(wenningStations, 'wenning-container', dataMap);
-            renderStationGrid(luneStations, 'lune-container', dataMap);
-            renderStationGrid(mintStations, 'mint-container', dataMap);
-            renderStationGrid(duddonStations, 'duddon-container', dataMap);
-
-            updateMapMarkers(dataMap);
-        }
-
-
+        // Initialize application
         initMap();
         loadWeatherData().then(() => {
             loadSolunarData();
