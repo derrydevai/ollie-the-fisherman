@@ -66,6 +66,7 @@
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 20px;
             margin-bottom: 24px;
+            align-items: stretch;
         }
 
         .dashboard-section {
@@ -73,6 +74,8 @@
             border-radius: 12px;
             padding: 16px;
             border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
         }
 
         .section-title {
@@ -117,7 +120,58 @@
         }
 
         .metric-label { font-size: 11px; color: var(--text-secondary); }
-        .metric-val { font-size: 15px; font-weight: bold; margin-top: 2px; color: var(--accent-teal); }
+        .metric-val { 
+            font-size: 15px; 
+            font-weight: bold; 
+            margin-top: 2px; 
+            color: #c5d4cf !important;
+        }
+
+        /* Hourly Weather Ribbon Styling */
+        .hourly-forecast-container {
+            margin-bottom: 12px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 10px;
+        }
+
+        .hourly-title {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .hourly-scroll {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 6px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border-color) transparent;
+        }
+
+        .hourly-scroll::-webkit-scrollbar { height: 4px; }
+        .hourly-scroll::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        .hourly-item {
+            flex: 0 0 54px;
+            background: rgba(10, 15, 13, 0.4);
+            padding: 6px 4px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 11px;
+            border: 1px solid rgba(255,255,255,0.03);
+        }
+
+        .hourly-time { font-weight: 700; color: #a0b2aa; font-size: 10px; }
+        .hourly-icon { font-size: 16px; margin: 2px 0; }
+        .hourly-temp { font-weight: 600; color: #ffffff; }
+        .hourly-rain { font-size: 9px; font-weight: 600; }
 
         .forecast-grid {
             display: grid;
@@ -139,27 +193,124 @@
         .forecast-date { font-weight: 700; color: var(--accent-green); margin-bottom: 4px; }
         .forecast-icon { font-size: 20px; margin: 4px 0; }
 
-        #map { height: 270px; width: 100%; border-radius: 8px; z-index: 1; }
+        /* EXPANDED MAP HEIGHT TO BALANCE TOP GRID */
+        #map { 
+            height: 480px; 
+            width: 100%; 
+            border-radius: 8px; 
+            z-index: 1; 
+            flex-grow: 1;
+        }
+
+        .sub-heading {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #a0b2aa !important;
+            margin-top: 10px;
+            margin-bottom: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .tooltip-container {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
+            color: #8da49c !important;
+            font-size: 11px;
+        }
+
+        .tooltip-container #weather-humidity { color: #8da49c !important; }
+
+        .tooltip-container .tooltip-text {
+            visibility: hidden;
+            width: 230px;
+            background-color: var(--bg-card) !important;
+            color: #c5d4cf !important;
+            text-align: left;
+            border-radius: 6px;
+            padding: 8px 10px;
+            border: 1px solid var(--border-color) !important;
+            position: absolute;
+            z-index: 10;
+            bottom: 125%;
+            right: 0;
+            opacity: 0;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+            font-size: 10px;
+            font-weight: normal;
+            line-height: 1.35;
+            text-transform: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+
+        .tooltip-container .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            right: 10px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: var(--border-color) transparent transparent transparent;
+        }
+
+        .tooltip-container:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* BAROMETRIC TREND BOX */
+        .baro-trend-box {
+            background: rgba(10, 15, 13, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 8px 10px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+        }
+
+        .baro-trend-title { color: var(--text-secondary); font-size: 10px; text-transform: uppercase; }
+        .baro-trend-val { font-weight: bold; color: #ffffff; }
 
         .solunar-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 8px;
-            margin-top: 10px;
+            margin-bottom: 10px;
         }
 
         .window-card {
             background: rgba(10, 15, 13, 0.4);
             padding: 8px;
             border-radius: 6px;
-            border-left: 3px solid var(--accent-teal);
+            border-left: 3px solid var(--text-secondary);
         }
 
         .window-card.major { border-left-color: var(--accent-green); }
         .window-title { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; }
         .window-time { font-size: 12px; font-weight: 600; margin-top: 2px; }
 
-        /* Flexible section ordering */
+        /* MOON PHASE BADGE */
+        .moon-card {
+            background: rgba(10, 15, 13, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 8px 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 11px;
+        }
+
+        .chart-container { position: relative; height: 180px; width: 100%; margin-bottom: 10px; }
+        
         #rivers-wrapper {
             display: flex;
             flex-direction: column;
@@ -199,7 +350,6 @@
 
         .station-card:hover { transform: translateY(-2px); background: var(--bg-card-hover); }
 
-        /* Highlight animation class applied on map pin click */
         .station-card.highlighted {
             border-color: var(--accent-green) !important;
             box-shadow: 0 0 15px rgba(208, 230, 51, 0.4);
@@ -214,7 +364,7 @@
         
         .trend-line { font-size: 12px; font-weight: 600; margin-bottom: 8px; }
         .trend-rising { color: var(--accent-red); }
-        .trend-falling { color: var(--accent-teal); }
+        .trend-falling { color: #a0b2aa; }
         .trend-steady { color: var(--text-secondary); }
 
         .fci-block {
@@ -245,7 +395,7 @@
         }
 
         .fci-prime { background: rgba(208, 230, 51, 0.2); color: var(--accent-green); }
-        .fci-good { background: rgba(46, 196, 182, 0.2); color: var(--accent-teal); }
+        .fci-good { background: rgba(160, 178, 170, 0.2); color: #a0b2aa; }
         .fci-mod { background: rgba(245, 158, 11, 0.2); color: var(--accent-yellow); }
         .fci-poor { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); }
 
@@ -257,10 +407,25 @@
             line-height: 1.3;
         }
 
-        .chart-container { position: relative; height: 110px; width: 100%; }
-        
-        .leaflet-popup-content-wrapper { background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-color); }
+        .leaflet-popup-content-wrapper { 
+            background: var(--bg-card); 
+            color: var(--text-primary); 
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 4px;
+        }
         .leaflet-popup-tip { background: var(--bg-card); }
+        
+        .map-popup-title {
+            color: var(--accent-green);
+            font-size: 14px;
+            font-weight: 700;
+            text-decoration: underline;
+            cursor: pointer;
+            margin-bottom: 4px;
+            display: inline-block;
+        }
+        .map-popup-title:hover { color: #ffffff; }
     </style>
 </head>
 <body>
@@ -287,7 +452,12 @@
         <div class="dashboard-section">
             <div class="section-title">
                 <span id="weather-location-label">Ribble Valley Weather</span>
-                <span id="weather-humidity" style="color:var(--text-secondary)">--% RH</span>
+                <span class="tooltip-container">
+                    <span id="weather-humidity">--% Relative Humidity</span> &nbsp;ℹ️
+                    <div class="tooltip-text">
+                        <strong>Relative Humidity:</strong> Measures how saturated the air is with moisture. High percentages (80%+) mean damp air, fog, mist, or high chance of rain.
+                    </div>
+                </span>
             </div>
 
             <div class="weather-banner">
@@ -317,6 +487,11 @@
                 </div>
             </div>
 
+            <div class="hourly-forecast-container">
+                <div class="hourly-title">Today's Hourly Forecast</div>
+                <div class="hourly-scroll" id="hourly-container"></div>
+            </div>
+
             <div class="forecast-grid" id="forecast-container"></div>
         </div>
 
@@ -326,12 +501,34 @@
             <div id="map"></div>
         </div>
 
-        <!-- Pressure & Solunar Combined Section -->
+        <!-- Barometer & Solunar Section -->
         <div class="dashboard-section">
-            <div class="section-title">Barometer & Solunar Times</div>
+            <div class="section-title">Barometer & Solunar</div>
+            
             <div class="chart-container">
                 <canvas id="pressureChart"></canvas>
             </div>
+
+            <div class="baro-trend-box">
+                <div>
+                    <div class="baro-trend-title">3-Hour Baro Trend</div>
+                    <div class="baro-trend-val" id="baro-trend-text">Calculating...</div>
+                </div>
+                <div id="baro-trend-icon" style="font-size: 18px;">➡️</div>
+            </div>
+            
+            <div class="sub-heading">
+                Solunar Feed Times
+                <div class="tooltip-container">
+                    <span>&nbsp;ℹ️</span>
+                    <div class="tooltip-text">
+                        <strong>Solunar Theory:</strong> Predicts peak feeding periods based on the moon's position relative to the sun. <br><br>
+                        • <strong>Major Windows:</strong> Occur when the moon is directly overhead or directly underfoot (~2 hours long).<br>
+                        • <strong>Minor Windows:</strong> Occur during moonrise and moonset (~1 hour long).
+                    </div>
+                </div>
+            </div>
+
             <div class="solunar-grid">
                 <div class="window-card major">
                     <div class="window-title">Major 1 (Overhead)</div>
@@ -350,6 +547,14 @@
                     <div class="window-time" id="solunar-min2">--:--</div>
                 </div>
             </div>
+
+            <div class="moon-card">
+                <div>
+                    <div style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase;">Moon Phase</div>
+                    <div style="font-weight: 600; color: #ffffff; margin-top: 2px;" id="moon-phase-name">Waxing Gibbous</div>
+                </div>
+                <div style="font-size: 20px;" id="moon-phase-icon">🌔</div>
+            </div>
         </div>
     </div>
 
@@ -366,7 +571,7 @@
         </div>
 
         <div class="river-group" id="group-wenning" style="order: 3;">
-            <h2 class="section-header-text">🌿 River Wenning (Trout & Grayling)</h2>
+            <h2 class="section-header-text">🌿 River Wenning (Trout)</h2>
             <div class="stations-grid" id="wenning-container"></div>
         </div>
 
@@ -376,12 +581,12 @@
         </div>
 
         <div class="river-group" id="group-mint" style="order: 5;">
-            <h2 class="section-header-text">⛰️ River Mint (Spate Salmon & Brown Trout)</h2>
+            <h2 class="section-header-text">⛰️ River Mint (Spate Salmon & Trout)</h2>
             <div class="stations-grid" id="mint-container"></div>
         </div>
 
         <div class="river-group" id="group-duddon" style="order: 6;">
-            <h2 class="section-header-text">⛰️ River Duddon (Spate Salmon & Brown Trout)</h2>
+            <h2 class="section-header-text">⛰️ River Duddon (Spate Salmon & Trout)</h2>
             <div class="stations-grid" id="duddon-container"></div>
         </div>
     </div>
@@ -395,42 +600,41 @@
 
         let globalAirTemp = 12;
         let globalPrecip = 0;
-        let globalPressureDelta = 0;
 
         const ribbleStations = [
-            { id: "710151", measure: "710151-level-stage-i-15_min-m", name: "Locks Weir (Settle)", reach: "Upper", min: 0.20, max: 1.80, lat: 54.068, lon: -2.281, riverType: "ribble" },
-            { id: "710102", measure: "710102-level-stage-i-15_min-m", name: "Penny Bridge", reach: "Upper", min: 0.09, max: 2.48, lat: 54.032, lon: -2.245, riverType: "ribble" },
-            { id: "710103", measure: "710103-level-stage-i-15_min-m", name: "Arnford", reach: "Upper", min: 0.22, max: 2.00, lat: 53.995, lon: -2.238, riverType: "ribble" },
-            { id: "710301", measure: "710301-level-stage-i-15_min-m", name: "Low Moor", reach: "Middle", min: 0.20, max: 3.30, lat: 53.882, lon: -2.418, riverType: "ribble" },
-            { id: "710305", measure: "710305-level-stage-i-15_min-m", name: "Henthorn (Clitheroe)", reach: "Middle", min: 0.33, max: 2.50, lat: 53.856, lon: -2.422, riverType: "ribble" },
-            { id: "713056", measure: "713056-level-stage-i-15_min-m", name: "New Jumbles Rock", reach: "Middle", min: 0.35, max: 2.80, lat: 53.829, lon: -2.485, riverType: "ribble" },
-            { id: "713040", measure: "713040-level-stage-i-15_min-m", name: "Ribchester School", reach: "Middle", min: 0.15, max: 4.41, lat: 53.811, lon: -2.531, riverType: "ribble" },
-            { id: "713019", measure: "713019-level-stage-i-15_min-m", name: "Samlesbury", reach: "Lower Middle", min: 1.14, max: 4.83, lat: 53.766, lon: -2.610, riverType: "ribble" },
-            { id: "713030", measure: "713030-level-stage-i-15_min-m", name: "Walton-Le-Dale", reach: "Lower (Tidal)", min: 0.15, max: 3.50, lat: 53.752, lon: -2.684, tidal: true, riverType: "ribble" }
+            { id: "710151", measure: "710151-level-stage-i-15_min-m", name: "Locks Weir (Settle)", reach: "Upper River Ribble", min: 0.20, max: 1.80, lat: 54.068, lon: -2.281, riverType: "ribble" },
+            { id: "710102", measure: "710102-level-stage-i-15_min-m", name: "Penny Bridge", reach: "Upper River Ribble", min: 0.09, max: 2.48, lat: 54.032, lon: -2.245, riverType: "ribble" },
+            { id: "710103", measure: "710103-level-stage-i-15_min-m", name: "Arnford", reach: "Upper River Ribble", min: 0.22, max: 2.00, lat: 53.995, lon: -2.238, riverType: "ribble" },
+            { id: "710301", measure: "710301-level-stage-i-15_min-m", name: "Low Moor", reach: "Middle River Ribble", min: 0.20, max: 3.30, lat: 53.882, lon: -2.418, riverType: "ribble" },
+            { id: "710305", measure: "710305-level-stage-i-15_min-m", name: "Henthorn (Clitheroe)", reach: "Middle River Ribble", min: 0.33, max: 2.50, lat: 53.856, lon: -2.422, riverType: "ribble" },
+            { id: "713056", measure: "713056-level-stage-i-15_min-m", name: "New Jumbles Rock", reach: "Middle River Ribble", min: 0.35, max: 2.80, lat: 53.829, lon: -2.485, riverType: "ribble" },
+            { id: "713040", measure: "713040-level-stage-i-15_min-m", name: "Ribchester School", reach: "Middle River Ribble", min: 0.15, max: 4.41, lat: 53.811, lon: -2.531, riverType: "ribble" },
+            { id: "713019", measure: "713019-level-stage-i-15_min-m", name: "Samlesbury", reach: "Lower River Ribble", min: 1.14, max: 4.83, lat: 53.766, lon: -2.610, riverType: "ribble" },
+            { id: "713030", measure: "713030-level-stage-i-15_min-m", name: "Walton-Le-Dale", reach: "Tidal River Ribble", min: 0.15, max: 3.50, lat: 53.752, lon: -2.684, tidal: true, riverType: "ribble" }
         ];
 
         const hodderStations = [
-            { id: "711610", measure: "711610-level-stage-i-15_min-m", name: "Hodder Place (Great Mitton)", reach: "Lower Hodder", min: 0.25, max: 1.90, lat: 53.843, lon: -2.438, riverType: "hodder" }
+            { id: "711610", measure: "711610-level-stage-i-15_min-m", name: "Hodder Place (Great Mitton)", reach: "Lower River Hodder", min: 0.25, max: 1.90, lat: 53.843, lon: -2.438, riverType: "hodder" }
         ];
 
         const wenningStations = [
-            { id: "724323", measure: "724323-level-stage-i-15_min-m", name: "Low Bentham", reach: "Upper Wenning", min: 0.15, max: 1.80, lat: 54.118, lon: -2.548, riverType: "wenning" },
-            { id: "724326", measure: "724326-level-stage-i-15_min-m", name: "Wennington", reach: "Mid Wenning", min: 0.12, max: 1.75, lat: 54.133, lon: -2.593, riverType: "wenning" },
-            { id: "724528", measure: "724528-level-stage-i-15_min-m", name: "Hornby", reach: "Lower Wenning", min: 0.18, max: 2.10, lat: 54.111, lon: -2.632, riverType: "wenning" }
+            { id: "724323", measure: "724323-level-stage-i-15_min-m", name: "Low Bentham", reach: "Upper River Wenning", min: 0.15, max: 1.80, lat: 54.118, lon: -2.548, riverType: "wenning" },
+            { id: "724326", measure: "724326-level-stage-i-15_min-m", name: "Wennington", reach: "Middle River Wenning", min: 0.12, max: 1.75, lat: 54.133, lon: -2.593, riverType: "wenning" },
+            { id: "724528", measure: "724528-level-stage-i-15_min-m", name: "Hornby", reach: "Lower River Wenning", min: 0.18, max: 2.10, lat: 54.111, lon: -2.632, riverType: "wenning" }
         ];
 
         const luneStations = [
-            { id: "724629", measure: "724629-level-stage-i-15_min-m", name: "Caton", reach: "Mid Lune", min: 0.22, max: 3.80, lat: 54.078, lon: -2.715, riverType: "lune" },
-            { id: "724734", measure: "724734-level-stage-i-15_min-m", name: "Skerton Weir", reach: "Lower Lune", min: 0.35, max: 3.50, lat: 54.058, lon: -2.801, tidal: true, riverType: "lune" },
-            { id: "724735", measure: "724735-level-stage-i-15_min-m", name: "Lancaster Quay", reach: "Estuary / Tidal", min: 1.60, max: 6.25, lat: 54.051, lon: -2.822, tidal: true, riverType: "lune" }
+            { id: "724629", measure: "724629-level-stage-i-15_min-m", name: "Caton", reach: "Middle River Lune", min: 0.22, max: 3.80, lat: 54.078, lon: -2.715, riverType: "lune" },
+            { id: "9127", name: "Skerton Weir", reach: "Lower River Lune", min: 0.35, max: 3.50, lat: 54.058, lon: -2.801, tidal: true, riverType: "lune" },
+            { id: "724735", measure: "724735-level-stage-i-15_min-m", name: "Lancaster Quay", reach: "Estuary / Tidal River Lune", min: 1.60, max: 6.25, lat: 54.051, lon: -2.822, tidal: true, riverType: "lune" }
         ];
 
         const mintStations = [
-            { id: "730404", measure: "730404-level-stage-i-15_min-m", name: "Mint Bridge (Kendal)", reach: "River Mint", min: 0.18, max: 1.20, lat: 54.341, lon: -2.729, riverType: "mint" }
+            { id: "730404", measure: "730404-level-stage-i-15_min-m", name: "Mint Bridge (Kendal)", reach: "Middle River Mint", min: 0.18, max: 1.20, lat: 54.341, lon: -2.729, riverType: "mint" }
         ];
 
         const duddonStations = [
-            { id: "740102", measure: "740102-level-stage-i-15_min-m", name: "Duddon Hall (Ulpha)", reach: "Mid Duddon", min: 0.11, max: 1.45, lat: 54.295, lon: -3.237, riverType: "duddon" }
+            { id: "740102", measure: "740102-level-stage-i-15_min-m", name: "Duddon Hall (Ulpha)", reach: "Middle River Duddon", min: 0.11, max: 1.45, lat: 54.295, lon: -3.237, riverType: "duddon" }
         ];
 
         function getWeatherIconAndDesc(code) {
@@ -447,7 +651,6 @@
 
         function reorderRiverSections(selectedGroup) {
             const groups = ["group-ribble", "group-hodder", "group-wenning", "group-lune", "group-mint", "group-duddon"];
-            
             let currentOrder = 2;
             groups.forEach(groupId => {
                 const el = document.getElementById(groupId);
@@ -496,11 +699,8 @@
             const el = document.getElementById(`station-card-${stationId}`);
             if (el) {
                 el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                
                 el.classList.add('highlighted');
-                setTimeout(() => {
-                    el.classList.remove('highlighted');
-                }, 2500);
+                setTimeout(() => el.classList.remove('highlighted'), 2500);
             }
         }
 
@@ -516,8 +716,10 @@
                 let color = "#d0e633";
 
                 if (data.levelVal !== null) {
-                    if (data.levelVal > st.max * 0.75) color = "#ef4444";
-                    else if (data.levelVal < st.min * 1.1) color = "#f59e0b";
+                    if (data.levelVal > (st.min + 0.60)) color = "#ef4444";
+                    else if (data.levelVal < st.min + 0.10) color = "#a0b2aa";
+                } else {
+                    color = "#ef4444";
                 }
 
                 const circle = L.circleMarker([st.lat, st.lon], {
@@ -527,27 +729,42 @@
                     radius: 7
                 }).addTo(mapInstance);
 
-                circle.on('click', () => {
-                    scrollToStationCard(st.id);
-                });
+                const valStr = data.levelVal !== null ? `${data.levelVal.toFixed(2)}m` : '⚠️ Telemetry Offline';
+                const trendStr = data.delta >= 0.015 ? '▲ Rising' : (data.delta <= -0.015 ? '▼ Falling' : '━ Steady');
+                const fci = calculateFCI(st, data.levelVal, data.delta);
 
-                const valStr = data.levelVal !== null ? `${data.levelVal.toFixed(2)}m` : 'Offline';
-                const trendStr = data.delta > 0.005 ? '▲ Rising' : (data.delta < -0.005 ? '▼ Falling' : '━ Steady');
+                let speciesSummary = '';
+                if (fci && fci.speciesRows) {
+                    speciesSummary = fci.speciesRows.map(r => 
+                        `<div style="font-size:10px; display:flex; justify-content:space-between; margin-top:2px;">
+                            <span>${r.name}:</span> <b class="${r.badgeClass}" style="padding:0 4px; border-radius:2px;">${r.label}</b>
+                        </div>`
+                    ).join('');
+                }
 
-                circle.bindPopup(`
-                    <strong style="color:#d0e633">${st.name}</strong><br>
-                    Level: <b>${valStr}</b> (${trendStr})<br>
-                    Normal: ${st.min}m - ${st.max}m<br>
-                    <small style="color:var(--text-secondary); text-decoration:underline;">Click to focus card 👇</small>
-                `);
+                const popupContent = `
+                    <div style="font-family: inherit;">
+                        <a href="javascript:void(0)" onclick="scrollToStationCard('${st.id}')" class="map-popup-title">${st.name} 🔗</a><br>
+                        <span style="font-size:10px; color:var(--text-secondary);">${st.reach}</span><br>
+                        <div style="margin: 6px 0; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 4px 0;">
+                            Level: <b style="color:#fff;">${valStr}</b> (${trendStr})<br>
+                            <small style="color:var(--text-secondary)">Range: ${st.min}m - ${st.max}m</small>
+                        </div>
+                        ${speciesSummary}
+                        <div style="font-size:9px; color:var(--text-secondary); margin-top:6px; font-style:italic;">
+                            💡 Click title to scroll to section
+                        </div>
+                    </div>
+                `;
 
+                circle.bindPopup(popupContent);
                 mapMarkers.push(circle);
             });
         }
 
         async function loadWeatherData() {
             try {
-                const url = `https://api.open-meteo.com/v1/forecast?latitude=${currentLat}&longitude=${currentLon}&current=temperature_2m,relative_humidity_2m,precipitation,surface_pressure,wind_speed_10m,weather_code&hourly=surface_pressure&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weather_code&forecast_days=5&wind_speed_unit=mph`;
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=${currentLat}&longitude=${currentLon}&current=temperature_2m,relative_humidity_2m,precipitation,surface_pressure,wind_speed_10m,weather_code&hourly=temperature_2m,precipitation,weather_code,surface_pressure&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weather_code&forecast_days=5&wind_speed_unit=mph`;
                 const res = await fetch(url);
                 const data = await res.json();
 
@@ -564,7 +781,32 @@
                 document.getElementById('weather-wind').innerText = `${Math.round(data.current.wind_speed_10m)}mph`;
                 document.getElementById('weather-precip').innerText = `${data.current.precipitation}mm`;
                 document.getElementById('weather-pressure').innerText = `${Math.round(data.current.surface_pressure)}hPa`;
-                document.getElementById('weather-humidity').innerText = `${data.current.relative_humidity_2m}% RH`;
+                document.getElementById('weather-humidity').innerText = `${data.current.relative_humidity_2m}% Relative Humidity`;
+
+                const hourlyContainer = document.getElementById('hourly-container');
+                hourlyContainer.innerHTML = '';
+                const currentHourIndex = new Date().getHours();
+
+                for (let i = currentHourIndex; i < currentHourIndex + 24; i += 2) {
+                    if (!data.hourly.time[i]) break;
+                    
+                    const hourTime = new Date(data.hourly.time[i]);
+                    const timeLabel = hourTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    const temp = Math.round(data.hourly.temperature_2m[i]);
+                    const precip = data.hourly.precipitation[i];
+                    const condition = getWeatherIconAndDesc(data.hourly.weather_code[i]);
+
+                    hourlyContainer.innerHTML += `
+                        <div class="hourly-item">
+                            <div class="hourly-time">${timeLabel}</div>
+                            <div class="hourly-icon">${condition.icon}</div>
+                            <div class="hourly-temp">${temp}°</div>
+                            <div class="hourly-rain" style="color:${precip > 0.5 ? '#a0b2aa' : 'var(--text-secondary)'}">
+                                ${precip > 0 ? precip + 'mm' : 'Dry'}
+                            </div>
+                        </div>
+                    `;
+                }
 
                 const forecastContainer = document.getElementById('forecast-container');
                 forecastContainer.innerHTML = '';
@@ -589,12 +831,35 @@
                     `;
                 }
 
-                const currentHourIndex = new Date().getHours();
                 const next24HoursPressure = data.hourly.surface_pressure.slice(currentHourIndex, currentHourIndex + 24);
                 const timeLabels = Array.from({length: 24}, (_, i) => `${(currentHourIndex + i) % 24}:00`);
 
-                if (next24HoursPressure.length >= 3) {
-                    globalPressureDelta = next24HoursPressure[0] - next24HoursPressure[2];
+                if (next24HoursPressure.length >= 4) {
+                    const diff = next24HoursPressure[3] - next24HoursPressure[0];
+                    const trendTextEl = document.getElementById('baro-trend-text');
+                    const trendIconEl = document.getElementById('baro-trend-icon');
+
+                    if (diff <= -2.0) {
+                        trendTextEl.innerText = "Falling Fast (Fish Feeding 🔥)";
+                        trendTextEl.style.color = "var(--accent-green)";
+                        trendIconEl.innerText = "📉";
+                    } else if (diff < -0.5) {
+                        trendTextEl.innerText = "Slow Fall (Good Activity)";
+                        trendTextEl.style.color = "#a0b2aa";
+                        trendIconEl.innerText = "↘️";
+                    } else if (diff >= 2.0) {
+                        trendTextEl.innerText = "Rising Rapidly (Slower)";
+                        trendTextEl.style.color = "var(--accent-yellow)";
+                        trendIconEl.innerText = "📈";
+                    } else if (diff > 0.5) {
+                        trendTextEl.innerText = "Slow Rise";
+                        trendTextEl.style.color = "#a0b2aa";
+                        trendIconEl.innerText = "↗️";
+                    } else {
+                        trendTextEl.innerText = "Steady Pressure";
+                        trendTextEl.style.color = "var(--text-secondary)";
+                        trendIconEl.innerText = "➡️";
+                    }
                 }
 
                 renderPressureChart(timeLabels, next24HoursPressure);
@@ -611,8 +876,8 @@
                     labels: labels,
                     datasets: [{
                         data: pressureData,
-                        borderColor: '#2ec4b6',
-                        backgroundColor: 'rgba(46, 196, 182, 0.15)',
+                        borderColor: '#a0b2aa',
+                        backgroundColor: 'rgba(160, 178, 170, 0.15)',
                         fill: true,
                         tension: 0.3,
                         pointRadius: 0
@@ -644,101 +909,172 @@
             } catch(e) { console.error("Solunar error", e); }
         }
 
+        /**
+         * Dynamic Station Fetcher:
+         * Handles RLOI IDs (e.g. 9127) & measures lookup fallback to guarantee live data feed
+         */
         async function fetchSingleStation(st) {
             try {
-                let res = await fetch(`https://environment.data.gov.uk/flood-monitoring/id/stations/${st.id}/readings?_limit=2&_sorted`);
-                let data = await res.json();
-                if (data.items && data.items.length > 0) {
-                    const latest = data.items[0].value;
-                    const previous = data.items[1] ? data.items[1].value : latest;
-                    return { id: st.id, levelVal: latest, delta: latest - previous };
+                let stationRef = st.id;
+                let stationObj = null;
+
+                // 1. Resolve RLOI IDs or check direct station object
+                if (st.id.length <= 5) {
+                    const rloiRes = await fetch(`https://environment.data.gov.uk/flood-monitoring/id/stations?RLOIid=${st.id}`);
+                    if (rloiRes.ok) {
+                        const rloiData = await rloiRes.json();
+                        if (rloiData.items && rloiData.items.length > 0) {
+                            stationObj = rloiData.items[0];
+                            stationRef = stationObj.notation || stationObj.stationReference;
+                        }
+                    }
                 }
 
-                res = await fetch(`https://environment.data.gov.uk/flood-monitoring/id/measures/${st.measure}/readings?_limit=2`);
-                data = await res.json();
-                if (data.items && data.items.length > 0) {
-                    const latest = data.items[0].value;
-                    const previous = data.items[1] ? data.items[1].value : latest;
-                    return { id: st.id, levelVal: latest, delta: latest - previous };
+                if (!stationObj) {
+                    const stRes = await fetch(`https://environment.data.gov.uk/flood-monitoring/id/stations/${st.id}`);
+                    if (stRes.ok) {
+                        const stData = await stRes.json();
+                        stationObj = stData.items;
+                        stationRef = stationObj ? (stationObj.notation || stationObj.stationReference || st.id) : st.id;
+                    }
                 }
-            } catch(e) { console.error(`Error fetching station ${st.id}`, e); }
-            return { id: st.id, levelVal: null, delta: 0 };
+
+                // 2. Resolve readings (Direct reading or fallback to measures endpoint)
+                let latestReading = stationObj ? stationObj.latestReading : null;
+
+                if (!latestReading && st.measure) {
+                    const mRes = await fetch(`https://environment.data.gov.uk/flood-monitoring/id/measures/${st.measure}/readings?_limit=2`);
+                    if (mRes.ok) {
+                        const mData = await mRes.json();
+                        if (mData.items && mData.items.length > 0) {
+                            const latest = mData.items[0].value;
+                            const previous = mData.items[1] ? mData.items[1].value : latest;
+                            return { id: st.id, levelVal: latest, delta: latest - previous, status: 'online' };
+                        }
+                    }
+                }
+
+                if (!latestReading) {
+                    const measuresRes = await fetch(`https://environment.data.gov.uk/flood-monitoring/id/stations/${stationRef}/measures`);
+                    if (measuresRes.ok) {
+                        const measuresData = await measuresRes.json();
+                        if (measuresData.items) {
+                            const items = Array.isArray(measuresData.items) ? measuresData.items : [measuresData.items];
+                            const levelMeasure = items.find(m => m.latestReading) || items[0];
+                            if (levelMeasure) {
+                                latestReading = levelMeasure.latestReading;
+                            }
+                        }
+                    }
+                }
+
+                if (latestReading && latestReading.value !== undefined) {
+                    const latest = latestReading.value;
+                    return { id: st.id, levelVal: latest, delta: 0, status: 'online' };
+                }
+
+            } catch(e) { 
+                console.warn(`Error fetching station ${st.id}:`, e); 
+            }
+            
+            return { id: st.id, levelVal: null, delta: 0, status: 'offline' };
         }
 
         function calculateFCI(station, levelVal, delta) {
             if (levelVal === null) return null;
 
-            const isRising = delta > 0.008;
-            const isFalling = delta < -0.008;
-            const isHigh = levelVal > station.max * 0.70;
-            const isLow = levelVal < station.min * 1.15;
-            const isWarm = globalAirTemp >= 11;
-            const isCold = globalAirTemp < 6;
+            const isRapidRise = delta >= 0.04;    
+            const isSlowRise  = delta >= 0.01 && delta < 0.04; 
+            const isFalling   = delta <= -0.015;  
+
+            const isSpateHeight = levelVal > (station.min + 0.60) || levelVal > (station.max * 0.65);
+            const isLowWater    = levelVal < (station.min + 0.15);
+
+            const isWarm = globalAirTemp >= 12;
+            const isCold = globalAirTemp < 8;
 
             let speciesRows = [];
             let tacticalTip = "";
 
             if (station.riverType === "wenning") {
-                let trout = { label: "Prime (Dry/Nymph)", badgeClass: "fci-prime" };
-                if (isHigh || isRising) {
+                let trout = { label: "Good (Dry/Nymph)", badgeClass: "fci-good" };
+
+                if (isSpateHeight && isRapidRise) {
                     trout = { label: "High / Colored", badgeClass: "fci-poor" };
-                    tacticalTip = "Streamer/weighted black bug in edge eddies while clearing.";
-                } else if (isLow) {
+                    tacticalTip = "Heavy dirty water. Look for slack pocket eddies near the banks.";
+                } else if (isFalling && isSpateHeight) {
+                    trout = { label: "🔥 Clearing Spate", badgeClass: "fci-prime" };
+                    tacticalTip = "Dropping water! Heavy French nymphs or dark streamers in side margins.";
+                } else if (isSlowRise && !isSpateHeight) {
+                    trout = { label: "🔥 Fresh Lift", badgeClass: "fci-prime" };
+                    tacticalTip = "Slight water bump stirring up food! Great time for nymph or dry fly.";
+                } else if (isLowWater) {
                     trout = { label: "Fine & Low", badgeClass: "fci-good" };
-                    tacticalTip = "Long leaders, 7ft 2wt rod, small CDC or French nymph upstream.";
+                    tacticalTip = "Stealth required. Fine tippets, CDC dries, or French nymphing shallow riffles.";
                 } else {
-                    tacticalTip = "Upstream French nymphing run pockets or hatch-matching Klinkhammers.";
+                    trout = { label: "🔥 PRIME Fly", badgeClass: "fci-prime" };
+                    tacticalTip = "Upstream French nymphing in run pockets or hatch-matching Klinkhammers.";
                 }
-                speciesRows.push({ name: "🍃 Brown Trout / Grayling", label: trout.label, badgeClass: trout.badgeClass });
+
+                speciesRows.push({ name: "🍃 Trout", label: trout.label, badgeClass: trout.badgeClass });
             }
             else if (station.riverType === "mint") {
                 let salmon = { label: "Low Water (Idle)", badgeClass: "fci-poor" };
                 let trout = { label: "Good Pocket Fly", badgeClass: "fci-good" };
 
-                if (isRising || (isFalling && isHigh)) {
+                if (isRapidRise || (isSpateHeight && delta > 0.02)) {
                     salmon = { label: "🔥 SPATE RUN", badgeClass: "fci-prime" };
                     tacticalTip = "Heavy spate! Fish small red/black Cascades in fast tail-outs immediately.";
-                } else if (isLow) {
+                } else if (isFalling && isSpateHeight) {
+                    salmon = { label: "🔥 Prime Dropping", badgeClass: "fci-prime" };
+                    tacticalTip = "Water clearing nicely. Swing flea flies through tail-outs.";
+                } else if (isLowWater) {
                     tacticalTip = "Trout in pot-holes. Needs fresh rain to lift migrating salmon from Kent.";
                 } else {
-                    tacticalTip = "Target brown trout on dries; watch for sudden water lifts.";
+                    tacticalTip = "Target trout on dries; watch for sudden water lifts.";
                 }
 
                 speciesRows.push({ name: "🎣 Salmon (Spate Run)", label: salmon.label, badgeClass: salmon.badgeClass });
-                speciesRows.push({ name: "🍃 Brown Trout", label: trout.label, badgeClass: trout.badgeClass });
+                speciesRows.push({ name: "🍃 Trout", label: trout.label, badgeClass: trout.badgeClass });
             }
             else if (station.riverType === "duddon") {
                 let salmon = { label: "Low (Waiting Rain)", badgeClass: "fci-mod" };
                 let trout = { label: "Good Fly Water", badgeClass: "fci-good" };
 
-                if (isRising || (isFalling && isHigh)) {
+                if (isRapidRise || (isSpateHeight && delta > 0.02)) {
                     salmon = { label: "🔥 SPATE RUN", badgeClass: "fci-prime" };
                     tacticalTip = "Classic Lake District spate push! Fish dark flea flies/Cascades in deep fell pools.";
-                } else if (isLow) {
-                    tacticalTip = "Ultra clear water. Use stealth, fine tippet (#16-18 dry flies) for brown trout.";
+                } else if (isFalling && isSpateHeight) {
+                    salmon = { label: "🔥 Prime Dropping", badgeClass: "fci-prime" };
+                    tacticalTip = "Dropping rapidly! Work deep pools with weighted flies.";
+                } else if (isLowWater) {
+                    tacticalTip = "Ultra clear water. Use stealth, fine tippet (#16-18 dry flies) for trout.";
                 } else {
                     tacticalTip = "Search boulder runs with Duo setups (Klink & nymph).";
                 }
 
                 speciesRows.push({ name: "🎣 Salmon / Sea Trout", label: salmon.label, badgeClass: salmon.badgeClass });
-                speciesRows.push({ name: "🍃 Brown Trout", label: trout.label, badgeClass: trout.badgeClass });
+                speciesRows.push({ name: "🍃 Trout", label: trout.label, badgeClass: trout.badgeClass });
             }
             else if (station.riverType === "hodder") {
                 let salmon = { label: "Moderate", badgeClass: "fci-mod" };
                 let trout = { label: "Good Fly Water", badgeClass: "fci-good" };
 
-                if (isFalling && isHigh) {
+                if (isFalling && isSpateHeight) {
                     salmon = { label: "🔥 PRIME (Dropping)", badgeClass: "fci-prime" };
                     tacticalTip = "Perfect dropping water! Fly or spinner through Hodder Place & rock pools.";
-                } else if (isLow && isWarm) {
-                    salmon = { label: "Night Sea Trout", badgeClass: "fci-prime" };
+                } else if (isLowWater && isWarm) {
+                    salmon = { label: "Low & Clear", badgeClass: "fci-mod" };
                     tacticalTip = "Low & warm: Target nocturnal Sea Trout with surface subtle flies at dusk.";
+                } else if (isRapidRise) {
+                    salmon = { label: "Rising Spate", badgeClass: "fci-mod" };
+                    tacticalTip = "Water rising fast with color. Seek out calmer slack margins.";
                 } else {
                     tacticalTip = "Light dual-nymph or dry fly along steep limestone banks.";
                 }
 
                 speciesRows.push({ name: "🎣 Salmon / Sea Trout", label: salmon.label, badgeClass: salmon.badgeClass });
-                speciesRows.push({ name: "🍃 Brown Trout", label: trout.label, badgeClass: trout.badgeClass });
+                speciesRows.push({ name: "🍃 Trout", label: trout.label, badgeClass: trout.badgeClass });
             }
             else if (station.riverType === "lune") {
                 let salmon = { label: "Moderate", badgeClass: "fci-mod" };
@@ -747,18 +1083,18 @@
                 if (station.tidal && delta > 0.04) {
                     salmon = { label: "🌊 Tidal Push", badgeClass: "fci-prime" };
                     tacticalTip = "Big tide pushing fresh fish past Skerton/Caton! Swing Willie Gunn flies.";
-                } else if (isFalling && isHigh) {
+                } else if (isFalling && isSpateHeight) {
                     salmon = { label: "🔥 PRIME (Clearing)", badgeClass: "fci-prime" };
                     tacticalTip = "Ideal clearing water. Spey cast sinking tips & dark tube flies in deep pools.";
-                } else if (isLow) {
-                    salmon = { label: "Night Sea Trout", badgeClass: "fci-good" };
+                } else if (isLowWater) {
+                    salmon = { label: "Low & Clear", badgeClass: "fci-mod" };
                     tacticalTip = "Low summer levels. Switch to fine dry fly for trout or night tactics for sea trout.";
                 } else {
                     tacticalTip = "Streamers in deep glides or dry fly on gravel riffles.";
                 }
 
                 speciesRows.push({ name: "🎣 Salmon / Sea Trout", label: salmon.label, badgeClass: salmon.badgeClass });
-                speciesRows.push({ name: "🍃 Brown Trout", label: trout.label, badgeClass: trout.badgeClass });
+                speciesRows.push({ name: "🍃 Trout", label: trout.label, badgeClass: trout.badgeClass });
             }
             else {
                 let barbel = { label: "Moderate", badgeClass: "fci-mod" };
@@ -768,23 +1104,24 @@
                 if (isCold) {
                     barbel = { label: "Shut Down", badgeClass: "fci-poor" };
                     tacticalTip = "Water cold: Barbel dormant. Switch to trotting bread mash for winter chub.";
-                } else if (isRising && isWarm) {
+                } else if (isWarm && isRapidRise) {
                     barbel = { label: "🔥 Warm Spate", badgeClass: "fci-prime" };
                     tacticalTip = "Rising warm rain! Big smelly meat or heavy pellet feeders in slack marginal eddies.";
-                } else if (isFalling && isHigh) {
+                } else if (isFalling && isSpateHeight) {
                     barbel = { label: "🔥 PRIME (Dropping)", badgeClass: "fci-prime" };
                     salmon = { label: "🔥 PRIME Fly", badgeClass: "fci-prime" };
                     tacticalTip = "Tea-stained dropping water! Prime conditions for both barbel feeder & salmon fly.";
-                } else if (isLow && isWarm) {
-                    barbel = { label: "Dusk / Night", badgeClass: "fci-good" };
-                    tacticalTip = "Low & clear: Touch ledger rolling meat at dusk, or nymph shallow runs for trout.";
+                } else if (isLowWater) {
+                    barbel = { label: "Low & Clear", badgeClass: "fci-mod" };
+                    trout  = { label: "Fine & Clear", badgeClass: "fci-good" };
+                    tacticalTip = "Low & clear water: Spooky fish. Use fine lines, touch-ledger rolling meat, or fish low-light hours.";
                 } else {
                     tacticalTip = "Standard feeder tactics on gravel runs or trotting maggots.";
                 }
 
                 speciesRows.push({ name: "🐟 Barbel", label: barbel.label, badgeClass: barbel.badgeClass });
                 speciesRows.push({ name: "🎣 Salmon / Sea Trout", label: salmon.label, badgeClass: salmon.badgeClass });
-                speciesRows.push({ name: "🍃 Brown Trout / Grayling", label: trout.label, badgeClass: trout.badgeClass });
+                speciesRows.push({ name: "🍃 Trout", label: trout.label, badgeClass: trout.badgeClass });
             }
 
             return { speciesRows, tacticalTip };
@@ -798,12 +1135,17 @@
                 const data = dataMap[station.id] || { levelVal: null, delta: 0 };
                 const levelVal = data.levelVal;
                 const delta = data.delta;
-                const valDisplay = levelVal !== null ? `${levelVal.toFixed(2)} m` : "Offline";
+                
+                const valDisplay = levelVal !== null 
+                    ? `${levelVal.toFixed(2)} m` 
+                    : "<span style='color:var(--accent-red); font-size:18px;'>⚠️ Telemetry Offline</span>";
                 
                 let trendHtml = `<span class="trend-line trend-steady">━ Steady</span>`;
-                if (delta > 0.005) {
+                if (levelVal === null) {
+                    trendHtml = `<span class="trend-line" style="color:var(--text-secondary)">━ EA Gauge Maintenance / Delay</span>`;
+                } else if (delta >= 0.015) {
                     trendHtml = `<span class="trend-line trend-rising">▲ +${delta.toFixed(2)}m (Rising)</span>`;
-                } else if (delta < -0.005) {
+                } else if (delta <= -0.015) {
                     trendHtml = `<span class="trend-line trend-falling">▼ ${delta.toFixed(2)}m (Falling)</span>`;
                 }
 
@@ -823,6 +1165,13 @@
                             <div class="fci-title">Target Species Condition</div>
                             ${rowsHtml}
                             <div class="fci-tip">💡 ${fci.tacticalTip}</div>
+                        </div>
+                    `;
+                } else if (levelVal === null) {
+                    fciHtml = `
+                        <div class="fci-block">
+                            <div class="fci-title" style="color:var(--accent-yellow)">Telemetry Status</div>
+                            <div class="fci-tip">💡 Live reading unavailable from EA servers. The gauge may be undergoing routine field maintenance or experiencing a signal delay.</div>
                         </div>
                     `;
                 }
