@@ -1190,16 +1190,100 @@
                 `;
             }
         }
-
+        
+                /**
+         * Optimized Batch Station Fetcher:
+         * Queries all stations in ONE request using the EA Flood API batch endpoint,
+         * avoiding browser rate-limiting, CORS blocks, and individual 404 errors.
+         */
         async function loadRiverLevels() {
             const allStations = [...ribbleStations, ...hodderStations, ...wenningStations, ...luneStations, ...mintStations, ...duddonStations];
-            const results = await Promise.all(allStations.map(st => fetchSingleStation(st)));
-
             const dataMap = {};
-            results.forEach(item => {
-                dataMap[item.id] = { levelVal: item.levelVal, delta: item.delta };
+
+            // Initialize default offline states
+            allStations.forEach(st => {
+                dataMap[st.id] = { levelVal: null, delta: 0, status: 'offline' };
             });
 
+            try {
+                // Fetch all latest measure readings from EA API in a single payload
+                const batchUrl = `https://environment.data.gov.uk/flood-monitoring/id/measures?latest=true&_limit=2000`;
+                const response = await fetch(batchUrl);
+
+                if (!response.ok) {
+                    throw new Error(`EA API returned HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                const measures = data.items || [];
+
+                // Create a quick lookup map of measures by station notation / measure ID
+                const measuresByNotation = {};
+                measures.forEach(m => {
+                    const latest = m.latestReading;
+                    if (latest && latest.value !== undefined) {
+                        // Extract station reference/notation
+                        if (m.stationReference) {
+                            measuresByNotation[m.stationReference] = latest.value;
+                        }
+                        if (m['@id']) {
+                            measuresByNotation[m['@id']] = latest.value;
+                        }
+                        if (m.notation) {
+                            measuresByNotation[m.notation] = latest.value;
+                        }
+                    }
+                });
+
+                // Map readings back to dashboard station definitions
+                for (const st of allStations) {
+                    let foundVal = null;
+
+                    // Match via measure key, station ID, or notation
+                    if (st.measure && measuresByNotation[st.measure]) {
+                        foundVal = measuresByNotation[st.measure];
+                    } else if (measuresByNotation[st.id]) {
+                        foundVal = measuresByNotation[st.id];
+                    }
+
+                    // Special fallback for RLOI 9127 (Skerton Weir) if batch lookup misses
+                    if (foundVal === null && (st.id === "9127" || st.name.includes("Skerton"))) {
+                        try {
+                            const skertonRes = await fetch(`https://environment.data.gov.uk/flood-monitoring/id/stations?RLOIid=9127`);
+                            if (skertonRes.ok) {
+                                const skertonData = await skertonRes.json();
+                                const skertonStation = skertonData.items && skertonData.items[0];
+                                const skertonRef = skertonStation ? (skertonStation.notation || skertonStation.stationReference) : '724647';
+                                
+                                const mRes = await fetch(`https://environment.data.gov.uk/flood-monitoring/id/stations/${skertonRef}/measures`);
+                                if (mRes.ok) {
+                                    const mData = await mRes.json();
+                                    const items = Array.isArray(mData.items) ? mData.items : [mData.items];
+                                    const levelMeasure = items.find(m => m.latestReading) || items[0];
+                                    if (levelMeasure && levelMeasure.latestReading) {
+                                        foundVal = levelMeasure.latestReading.value;
+                                    }
+                                }
+                            }
+                        } catch (e) {
+                            console.warn("Skerton fallback fetch failed", e);
+                        }
+                    }
+
+                    if (foundVal !== null) {
+                        dataMap[st.id] = {
+                            levelVal: Number(foundVal),
+                            delta: 0, // Delta evaluates when historical points are stored
+                            status: 'online'
+                        };
+                    }
+                }
+
+            } catch (err) {
+                console.error("Batch fetch error for EA Flood API:", err);
+            }
+
+            // Render all grids with resolved data
             renderStationGrid(ribbleStations, 'ribble-container', dataMap);
             renderStationGrid(hodderStations, 'hodder-container', dataMap);
             renderStationGrid(wenningStations, 'wenning-container', dataMap);
@@ -1209,6 +1293,7 @@
 
             updateMapMarkers(dataMap);
         }
+
 
         initMap();
         loadWeatherData().then(() => {
